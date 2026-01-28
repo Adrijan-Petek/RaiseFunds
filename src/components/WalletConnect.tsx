@@ -14,56 +14,61 @@ function IconBadge({ children }: { children: React.ReactNode }) {
 }
 
 function MetaMaskIcon() {
-  // simple vector mark (not official, but professional-looking and consistent)
+  // higher-fidelity MetaMask fox mark (simplified for 20px square)
   return (
-    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-      <path fill="#F6851B" d="M10 10l18 14-3 7L10 10zm44 0L36 24l3 7 15-21z" />
-      <path fill="#E2761B" d="M28 24l8 0-4 9-4-9zm-3 7l7 5-9 8 2-13zm14 5l7-5 2 13-9-8z" />
-      <path fill="#D7C1B3" d="M23 44l9 6 9-6-9 13-9-13z" />
+    <svg width="20" height="20" viewBox="0 0 128 128" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" fillRule="evenodd">
+        <path d="M12.3 35.6 43 19.7 36 9 12.3 35.6z" fill="#E2761B" />
+        <path d="M115.7 35.6 86.9 19.7 92.9 9 115.7 35.6z" fill="#E2761B" />
+        <path d="M45.7 66.8 64 54l-4 18.5-14.3-5.7z" fill="#F6851B" />
+        <path d="M82.3 66.8 64 54l4 18.5 14.3-5.7z" fill="#F6851B" />
+        <path d="M23 75l23 18 0-12-23-6z" fill="#D7C1B3" />
+        <path d="M105 75l-23 18 0-12 23-6z" fill="#D7C1B3" />
+        <path d="M64 88l19-11-6 16-13-5z" fill="#C0AD9E" />
+      </g>
     </svg>
   )
 }
 
 function RainbowIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-      <path fill="#7C3AED" d="M32 10c12 0 22 10 22 22h-8c0-7.7-6.3-14-14-14s-14 6.3-14 14H10C10 20 20 10 32 10z" />
-      <path fill="#3B82F6" d="M32 18c7.7 0 14 6.3 14 14h-8c0-3.3-2.7-6-6-6s-6 2.7-6 6h-8c0-7.7 6.3-14 14-14z" />
-      <path fill="#EC4899" d="M32 26c3.3 0 6 2.7 6 6h-4c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-3.3 2.7-6 6-6z" />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" fillRule="evenodd">
+        <path d="M2 15c3-5 7-7 10-7s7 2 10 7" stroke="#7C3AED" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 17c2.5-3.5 6-5 8-5s5.5 1.5 8 5" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 19c2-2 4.5-3 6-3s4 1 6 3" stroke="#EC4899" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
     </svg>
   )
 }
 
-function CoinbaseIcon() {
+function BaseIcon() {
+  // compact Base mark (blue circle with white 'b' glyph)
   return (
-    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="28" fill="#0052FF" />
-      <circle cx="32" cy="32" r="14" fill="white" />
-      <rect x="30" y="22" width="18" height="20" rx="2" fill="#0052FF" />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="11" fill="#0052FF" />
+      <path d="M9.5 15.5C9.5 13.8 10.84 12.5 12.5 12.5H14.2C15.86 12.5 17 11.36 17 9.7 17 8.03 15.86 6.9 14.2 6.9H11" stroke="#FFF" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
 function FarcasterIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="10" y="10" width="44" height="44" rx="12" fill="#7C3AED" />
-      <path
-        fill="white"
-        d="M22 42V22h20v20h-4V30h-12v12h-4zm6-16h12v4H28v-4z"
-      />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="22" height="22" rx="5" fill="#7C3AED" />
+      <path d="M7 16V8h10v8h-3V11H10v5H7z" fill="#FFF" />
     </svg>
   )
 }
 
 function WalletConnectIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="10" y="10" width="44" height="44" rx="22" fill="#3396FF" />
-      <path
-        fill="white"
-        d="M24.5 29.5a10.6 10.6 0 0 1 15 0l1.3 1.3-2.6 2.6-1.3-1.3a6.9 6.9 0 0 0-9.8 0l-1.3 1.3-2.6-2.6 1.3-1.3zm-4.2 4.2 2.6 2.6 3.9 3.9a3 3 0 0 0 4.2 0l0 0 3.9-3.9 2.6-2.6 2.6 2.6-2.6 2.6-6.5 6.5a6.7 6.7 0 0 1-9.4 0l-6.5-6.5-2.6-2.6 2.6-2.6zm23.4 0 2.6-2.6 2.6 2.6-2.6 2.6-2.6-2.6z"
-      />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="11" fill="#3396FF" />
+      <g fill="none" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.5 14.5c-1.5 1.5-1.5 3.5 0 5 1.5 1.5 3.9 1.5 5.4 0l3-3" />
+        <path d="M14.5 9.5c1.5-1.5 1.5-3.5 0-5-1.5-1.5-3.9-1.5-5.4 0l-3 3" />
+      </g>
     </svg>
   )
 }
@@ -357,7 +362,7 @@ export function WalletConnect() {
                     </div>
                   </button>
 
-                  {/* Base (Coinbase Wallet) */}
+                  {/* Base (Coinbase L2) */}
                   <button
                     onClick={() => coinbaseConnector && connect({ connector: coinbaseConnector })}
                     disabled={!coinbaseConnector || isPending}
@@ -365,10 +370,10 @@ export function WalletConnect() {
                   >
                     <div className="flex items-center gap-3">
                       <IconBadge>
-                        <CoinbaseIcon />
+                        <BaseIcon />
                       </IconBadge>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold leading-5">Coinbase Wallet</div>
+                        <div className="text-sm font-semibold leading-5">Base</div>
                         <div className="text-xs text-[rgb(var(--muted))]">Mobile & browser</div>
                       </div>
                       <div className="text-sm font-medium text-[rgb(var(--accent))]">
