@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 
 export function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [progress, setProgress] = useState(0)
@@ -22,7 +21,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
-      <Image src="/logo/logo.png" alt="RaiseFunds" width={100} height={100} className="mb-4 animate-pulse" />
+      <img src="/logo/logo.png" alt="RaiseFunds" className="w-20 h-20 mb-4 animate-pulse" />
       <h1 className="text-2xl font-bold mb-4">RaiseFunds</h1>
       <div className="w-64 bg-gray-200 rounded-full h-2 mb-4">
         <div

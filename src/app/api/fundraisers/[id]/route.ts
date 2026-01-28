@@ -6,13 +6,15 @@ const updateStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'PAUSED', 'ENDED', 'HIDDEN']),
 })
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
   try {
+    const rawParams = context?.params
+    const params = rawParams && typeof rawParams.then === 'function' ? await rawParams : rawParams
+    const id = params?.id
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
     const fundraiser = await prisma.fundraiser.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         creator: true,
         donations: {
@@ -32,24 +34,26 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, context: any) {
   try {
+    const rawParams = context?.params
+    const params = rawParams && typeof rawParams.then === 'function' ? await rawParams : rawParams
+    const id = params?.id
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
     const body = await request.json()
     const data = updateStatusSchema.parse(body)
 
     // TODO: Check if user is creator
 
     const fundraiser = await prisma.fundraiser.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: data.status },
     })
     return NextResponse.json(fundraiser)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to update fundraiser' }, { status: 500 })
   }

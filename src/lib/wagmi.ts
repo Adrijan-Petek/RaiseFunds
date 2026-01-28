@@ -1,9 +1,3 @@
-import { http, createConfig } from 'wagmi'
-import { base } from 'wagmi/chains'
-
-export const config = createConfig({
-  chains: [base],
-  transports: {
-    [base.id]: http(),
-  },
-})
+// wagmi/viem integrations omitted in MVP dev environment to avoid
+// missing dependency issues during local builds.
+export const config = null as any

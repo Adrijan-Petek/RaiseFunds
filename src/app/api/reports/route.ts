@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(report, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to create report' }, { status: 500 })
   }

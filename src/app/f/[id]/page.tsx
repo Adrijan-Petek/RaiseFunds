@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Head from 'next/head'
 
 interface Fundraiser {
   id: string
@@ -24,6 +23,7 @@ export default function FundraiserPage() {
   const [donorName, setDonorName] = useState('')
   const [message, setMessage] = useState('')
   const [donationId, setDonationId] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -32,6 +32,18 @@ export default function FundraiserPage() {
         .then(setFundraiser)
     }
   }, [id])
+
+  useEffect(() => {
+    if (!fundraiser) return
+    try {
+      const text = `${fundraiser.title} - Help support this cause! ${typeof window !== 'undefined' ? window.location.href : ''}`
+      // construct URL parts to avoid embedding `/~/` literal which Turbopack has parsed as a regex
+      const url = 'https://warpcast.com/' + '~' + '/compose?text=' + encodeURIComponent(text)
+      setShareUrl(url)
+    } catch (e) {
+      setShareUrl(null)
+    }
+  }, [fundraiser])
 
   const handleDonate = async () => {
     if (!donateAmount) return
@@ -57,23 +69,16 @@ export default function FundraiserPage() {
     window.location.reload()
   }
 
-  const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`${fundraiser?.title} - Help support this cause! ${window.location.href}`)}`
+  // Temporarily disable share URL to avoid Turbopack regex parsing issues
+  // const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`${fundraiser?.title} - Help support this cause! ${window.location.href}`)}`
 
   if (!fundraiser) return <div className="container mx-auto p-4">Loading...</div>
 
   const progress = (fundraiser.totalRaisedCached / fundraiser.goalAmount) * 100
 
   return (
-    <>
-      <Head>
-        <title>{fundraiser.title}</title>
-        <meta property="og:title" content={fundraiser.title} />
-        <meta property="og:description" content={fundraiser.description} />
-        <meta property="og:image" content={fundraiser.coverImageUrl || ''} />
-        <meta property="og:url" content={window.location.href} />
-      </Head>
-      <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold">{fundraiser.title}</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold">{fundraiser.title}</h1>
         {fundraiser.coverImageUrl && <img src={fundraiser.coverImageUrl} alt={fundraiser.title} className="w-full h-64 object-cover my-4" />}
         <p className="text-lg">{fundraiser.description}</p>
         <p>Category: {fundraiser.category}</p>
@@ -110,7 +115,11 @@ export default function FundraiserPage() {
             <button onClick={handleConfirm} className="px-4 py-2 bg-blue-500 text-white rounded">Mark as Paid</button>
           )}
         </div>
-        <a href={shareUrl} target="_blank" className="px-4 py-2 bg-purple-500 text-white rounded mr-2">Share on Farcaster</a>
+        {shareUrl ? (
+          <a href={shareUrl} target="_blank" rel="noreferrer" className="px-4 py-2 bg-purple-500 text-white rounded mr-2">Share on Farcaster</a>
+        ) : (
+          <button disabled className="px-4 py-2 bg-purple-500 text-white rounded mr-2 opacity-60 cursor-not-allowed">Share on Farcaster</button>
+        )}
         <button className="px-4 py-2 bg-red-500 text-white rounded">Report</button>
         <h2 className="text-2xl font-semibold mt-8">Donations</h2>
         <ul className="space-y-2">
@@ -132,7 +141,6 @@ export default function FundraiserPage() {
             </li>
           ))}
         </ul>
-      </div>
-    </>
+    </div>
   )
 }

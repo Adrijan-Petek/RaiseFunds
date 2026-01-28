@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 
-export async function createDonation(fundraiserId: string, donorName?: string, donorAddress?: string, amount: number, message?: string) {
+export async function createDonation(fundraiserId: string, amount: number, donorName?: string, donorAddress?: string, message?: string) {
   const donation = await prisma.donation.create({
     data: {
       fundraiserId,

@@ -7,11 +7,13 @@ const createUpdateSchema = z.object({
   imageUrl: z.string().optional(),
 })
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
+    const rawParams = context?.params
+    const params = rawParams && typeof rawParams.then === 'function' ? await rawParams : rawParams
+    const id = params?.id
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
     const body = await request.json()
     const data = createUpdateSchema.parse(body)
 
@@ -19,14 +21,14 @@ export async function POST(
 
     const update = await prisma.update.create({
       data: {
-        fundraiserId: params.id,
+        fundraiserId: id,
         ...data,
       },
     })
     return NextResponse.json(update, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to create update' }, { status: 500 })
   }

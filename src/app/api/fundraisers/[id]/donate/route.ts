@@ -9,19 +9,21 @@ const donateSchema = z.object({
   message: z.string().optional(),
 })
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
+    const rawParams = context?.params
+    const params = rawParams && typeof rawParams.then === 'function' ? await rawParams : rawParams
+    const id = params?.id
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
     const body = await request.json()
     const data = donateSchema.parse(body)
 
-    const donation = await createDonation(params.id, data.donorName, data.donorAddress, data.amount, data.message)
+    const donation = await createDonation(id, data.amount, data.donorName, data.donorAddress, data.message)
     return NextResponse.json(donation, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to create donation' }, { status: 500 })
   }

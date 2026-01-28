@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { WalletConnect } from './WalletConnect'
 
 export function Header() {
@@ -9,7 +8,7 @@ export function Header() {
     <header className="flex justify-between items-center p-4 bg-gray-100">
       <div className="flex items-center space-x-4">
         <Link href="/">
-          <Image src="/logo/logo.png" alt="RaiseFunds" width={40} height={40} />
+          <img src="/logo/logo.png" alt="RaiseFunds" width={40} height={40} />
         </Link>
         <nav className="flex space-x-4">
           <Link href="/" className="text-blue-600 hover:underline">Home</Link>
