@@ -2,22 +2,32 @@
 
 import Link from 'next/link'
 import { WalletConnect } from './WalletConnect'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   return (
-    <header className="flex justify-between items-center p-4 bg-gray-100">
-      <div className="flex items-center space-x-4">
-        <Link href="/">
-          <img src="/logo/logo.png" alt="RaiseFunds" width={40} height={40} />
-        </Link>
-        <nav className="flex space-x-4">
-          <Link href="/" className="text-blue-600 hover:underline">Home</Link>
-          <Link href="/new" className="text-blue-600 hover:underline">New Fundraiser</Link>
-          <Link href="/me" className="text-blue-600 hover:underline">My Fundraisers</Link>
-          <Link href="/admin" className="text-blue-600 hover:underline">Admin</Link>
-        </nav>
+    <header className="mb-6 flex items-start justify-between gap-4">
+      <div>
+        <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
+        <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
       </div>
-      <WalletConnect />
+
+      <div className="flex items-center gap-2">
+        <Link
+          href="/me"
+          className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 py-2 text-sm hover:opacity-90"
+        >
+          My dashboard
+        </Link>
+        <Link
+          href="/new"
+          className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+        >
+          Create fundraiser
+        </Link>
+        <ThemeToggle />
+        <WalletConnect />
+      </div>
     </header>
   )
 }

@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: 255 255 255;
+    --fg: 17 24 39;
+    --muted: 107 114 128;
+    --card: 255 255 255;
+    --border: 226 232 240;
+    --accent: 59 130 246;
+  }
+
+  .dark {
+    --bg: 10 10 10;
+    --fg: 245 245 245;
+    --muted: 163 163 163;
+    --card: 18 18 18;
+    --border: 38 38 38;
+    --accent: 96 165 250;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background: rgb(var(--bg));
+    color: rgb(var(--fg));
+  }
+}
