@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  farcasterFid     Int      @unique
+  username         String
+  pfpUrl           String?
+  custodyAddress   String?
+  createdAt        DateTime @default(now())
+
+  fundraisers      Fundraiser[]
+  @@map("users")
+}
+
+model Fundraiser {
+  id                 String     @id @default(cuid())
+  creatorUserId      String
+  creator            User       @relation(fields: [creatorUserId], references: [id])
+  title              String
+  description        String
+  goalAmountWei      String
+  chainId            Int
+  beneficiaryAddress String
+  coverImageUrl      String?
+  category           String
+  deadline           DateTime?
+  status             Status     @default(active)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  donations          Donation[]
+  updates            Update[]
+  reports            Report[]
+  @@map("fundraisers")
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  fundraiserId  String
+  fundraiser    Fundraiser @relation(fields: [fundraiserId], references: [id])
+  donorAddress  String
+  amountWei     String
+  txHash        String   @unique
+  chainId       Int
+  createdAt     DateTime @default(now())
+
+  @@map("donations")
+}
+
+model Update {
+  id           String     @id @default(cuid())
+  fundraiserId String
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
+  text         String
+  imageUrl     String?
+  createdAt    DateTime   @default(now())
+
+  @@map("updates")
+}
+
+model Report {
+  id           String     @id @default(cuid())
+  fundraiserId String
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
+  reason       String
+  createdAt    DateTime   @default(now())
+
+  @@map("reports")
+}
+
+enum Status {
+  active
+  ended
+  hidden
+}
