@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
 
 const createUpdateSchema = z.object({
   text: z.string().min(1),
@@ -17,14 +16,16 @@ export async function POST(request: NextRequest, context: any) {
     const body = await request.json()
     const data = createUpdateSchema.parse(body)
 
-    // TODO: Check if user is creator
+    // Mock update creation - in a real app this would save to a database
+    const update = {
+      id: `update_${Date.now()}`,
+      fundraiserId: id,
+      ...data,
+      createdAt: new Date(),
+    }
 
-    const update = await prisma.update.create({
-      data: {
-        fundraiserId: id,
-        ...data,
-      },
-    })
+    console.log('Created update:', update)
+
     return NextResponse.json(update, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -1,42 +1,35 @@
-import { prisma } from './prisma'
+// Mock payment functions - in a real app these would integrate with payment processors
 
 export async function createDonation(fundraiserId: string, amount: number, donorName?: string, donorAddress?: string, message?: string) {
-  const donation = await prisma.donation.create({
-    data: {
-      fundraiserId,
-      donorName,
-      donorAddress,
-      amount,
-      message,
-      status: 'PENDING',
-    },
-  })
+  // Mock donation creation
+  const donation = {
+    id: `donation_${Date.now()}`,
+    fundraiserId,
+    donorName: donorName || 'Anonymous',
+    donorAddress: donorAddress || '0x000...',
+    amount,
+    message: message || '',
+    status: 'PENDING',
+    createdAt: new Date(),
+  }
+
+  // In a real app, this would save to database and initiate payment
+  console.log('Created donation:', donation)
+
   return donation
 }
 
 export async function confirmDonation(donationId: string) {
-  const donation = await prisma.donation.findUnique({
-    where: { id: donationId },
-  })
-  if (!donation || donation.status !== 'PENDING') {
-    throw new Error('Invalid donation')
+  // Mock donation confirmation
+  const donation = {
+    id: donationId,
+    status: 'CONFIRMED',
+    fundraiserId: 'mock-fundraiser-id',
+    amount: 1.0, // Mock amount
   }
 
-  // Update donation status
-  await prisma.donation.update({
-    where: { id: donationId },
-    data: { status: 'CONFIRMED' },
-  })
-
-  // Update fundraiser totalRaisedCached
-  await prisma.fundraiser.update({
-    where: { id: donation.fundraiserId },
-    data: {
-      totalRaisedCached: {
-        increment: donation.amount,
-      },
-    },
-  })
+  // In a real app, this would update database and process payment confirmation
+  console.log('Confirmed donation:', donation)
 
   return donation
 }

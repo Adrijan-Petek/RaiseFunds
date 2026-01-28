@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
 
 const createReportSchema = z.object({
   fundraiserId: z.string(),
@@ -13,9 +12,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = createReportSchema.parse(body)
 
-    const report = await prisma.report.create({
-      data: data,
-    })
+    // Mock report creation - in a real app this would save to a database
+    const report = {
+      id: `report_${Date.now()}`,
+      ...data,
+      createdAt: new Date(),
+      status: 'PENDING'
+    }
+
+    console.log('Created report:', report)
+
     return NextResponse.json(report, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
