@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
+
+const createUpdateSchema = z.object({
+  text: z.string().min(1),
+  imageUrl: z.string().optional(),
+})
 
 export async function POST(
   request: NextRequest,
@@ -7,17 +13,21 @@ export async function POST(
 ) {
   try {
     const body = await request.json()
-    const { text, imageUrl } = body
+    const data = createUpdateSchema.parse(body)
+
+    // TODO: Check if user is creator
 
     const update = await prisma.update.create({
       data: {
         fundraiserId: params.id,
-        text,
-        imageUrl,
+        ...data,
       },
     })
     return NextResponse.json(update, { status: 201 })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Failed to create update' }, { status: 500 })
   }
 }

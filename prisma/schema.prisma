@@ -11,48 +11,52 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  farcasterFid     Int      @unique
-  username         String
-  pfpUrl           String?
-  custodyAddress   String?
-  createdAt        DateTime @default(now())
+  id        String   @id @default(cuid())
+  fid       Int?     @unique
+  username  String?
+  pfpUrl    String?
+  createdAt DateTime @default(now())
 
-  fundraisers      Fundraiser[]
+  fundraisers Fundraiser[]
   @@map("users")
 }
 
 model Fundraiser {
-  id                 String     @id @default(cuid())
-  creatorUserId      String
-  creator            User       @relation(fields: [creatorUserId], references: [id])
-  title              String
-  description        String
-  goalAmountWei      String
-  chainId            Int
-  beneficiaryAddress String
-  coverImageUrl      String?
-  category           String
-  deadline           DateTime?
-  status             Status     @default(active)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  id                  String     @id @default(cuid())
+  creatorUserId       String
+  creator             User       @relation(fields: [creatorUserId], references: [id])
+  title               String
+  description         String
+  goalAmount          Decimal    @default(0)
+  currency            String     @default("ETH")
+  beneficiaryAddress  String
+  coverImageUrl       String?
+  category            String
+  deadline            DateTime?
+  status              Status     @default(ACTIVE)
+  registryCampaignId  String?
+  vaultAddress        String?
+  totalRaisedCached   Decimal    @default(0)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
 
-  donations          Donation[]
-  updates            Update[]
-  reports            Report[]
+  donations           Donation[]
+  updates             Update[]
+  reports             Report[]
   @@map("fundraisers")
 }
 
 model Donation {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   fundraiserId  String
-  fundraiser    Fundraiser @relation(fields: [fundraiserId], references: [id])
-  donorAddress  String
-  amountWei     String
-  txHash        String   @unique
-  chainId       Int
-  createdAt     DateTime @default(now())
+  fundraiser    Fundraiser   @relation(fields: [fundraiserId], references: [id])
+  donorName     String?
+  donorAddress  String?
+  amount        Decimal
+  message       String?
+  paymentRef    String?
+  status        DonationStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
 
   @@map("donations")
 }
@@ -73,13 +77,21 @@ model Report {
   fundraiserId String
   fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
   reason       String
+  details      String?
   createdAt    DateTime   @default(now())
 
   @@map("reports")
 }
 
 enum Status {
-  active
-  ended
-  hidden
+  ACTIVE
+  PAUSED
+  ENDED
+  HIDDEN
+}
+
+enum DonationStatus {
+  PENDING
+  CONFIRMED
+  FAILED
 }

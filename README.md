@@ -1,5 +1,9 @@
 # RaiseFunds
 
+<p align="center">
+  <img src="public/logo/logo.png" alt="RaiseFunds Logo" width="200">
+</p>
+
 A decentralized fundraising platform built on Farcaster, enabling users to create, share, and donate to fundraisers directly onchain. Developed with modern web technologies for a seamless and secure experience.
 
 ## Features

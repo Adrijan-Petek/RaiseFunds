@@ -7,7 +7,7 @@ export default function NewFundraiser() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    goalAmountWei: '',
+    goalAmount: '',
     beneficiaryAddress: '',
     coverImageUrl: '',
     category: '',
@@ -17,14 +17,12 @@ export default function NewFundraiser() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Assume creatorUserId is 'dummy' for now
     const res = await fetch('/api/fundraisers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
-        creatorUserId: 'dummy-user-id', // TODO: get from auth
-        chainId: 8453, // Base
+        goalAmount: parseFloat(form.goalAmount),
       }),
     })
     if (res.ok) {
@@ -33,9 +31,9 @@ export default function NewFundraiser() {
   }
 
   return (
-    <div>
+    <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Create Fundraiser</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
         <input
           type="text"
           placeholder="Title"
@@ -52,10 +50,10 @@ export default function NewFundraiser() {
           required
         />
         <input
-          type="text"
-          placeholder="Goal Amount (wei)"
-          value={form.goalAmountWei}
-          onChange={e => setForm({ ...form, goalAmountWei: e.target.value })}
+          type="number"
+          placeholder="Goal Amount (ETH)"
+          value={form.goalAmount}
+          onChange={e => setForm({ ...form, goalAmount: e.target.value })}
           className="w-full p-2 border"
           required
         />

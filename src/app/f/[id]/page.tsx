@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { useSendTransaction, useWaitForTransactionReceipt } from 'wagmi'
-import { parseEther } from 'viem'
+import Head from 'next/head'
 
 interface Fundraiser {
   id: string
   title: string
   description: string
-  goalAmountWei: string
+  goalAmount: number
   beneficiaryAddress: string
   coverImageUrl?: string
   category: string
-  donations: { id: string; donorAddress: string; amountWei: string; createdAt: string }[]
+  totalRaisedCached: number
+  donations: { id: string; donorName?: string; amount: number; message?: string; createdAt: string; status: string }[]
   updates: { id: string; text: string; imageUrl?: string; createdAt: string }[]
 }
 
@@ -21,10 +21,9 @@ export default function FundraiserPage() {
   const { id } = useParams()
   const [fundraiser, setFundraiser] = useState<Fundraiser | null>(null)
   const [donateAmount, setDonateAmount] = useState('')
-  const [txHash, setTxHash] = useState('')
-
-  const { sendTransaction, data: hash } = useSendTransaction()
-  const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const [donorName, setDonorName] = useState('')
+  const [message, setMessage] = useState('')
+  const [donationId, setDonationId] = useState<string | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -34,75 +33,106 @@ export default function FundraiserPage() {
     }
   }, [id])
 
-  useEffect(() => {
-    if (isSuccess && hash) {
-      setTxHash(hash)
-      // Submit to verify
-      fetch('/api/donations/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fundraiserId: id, txHash: hash }),
-      }).then(() => {
-        // Refresh
-        window.location.reload()
-      })
-    }
-  }, [isSuccess, hash, id])
-
-  const handleDonate = () => {
+  const handleDonate = async () => {
     if (!donateAmount) return
-    sendTransaction({
-      to: fundraiser?.beneficiaryAddress as `0x${string}`,
-      value: parseEther(donateAmount),
+    const res = await fetch(`/api/fundraisers/${id}/donate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: parseFloat(donateAmount),
+        donorName: donorName || undefined,
+        message: message || undefined,
+      }),
     })
+    const donation = await res.json()
+    setDonationId(donation.id)
   }
 
-  if (!fundraiser) return <div>Loading...</div>
+  const handleConfirm = async () => {
+    if (!donationId) return
+    await fetch(`/api/donations/${donationId}/confirm`, {
+      method: 'POST',
+    })
+    // Refresh
+    window.location.reload()
+  }
 
-  const raised = fundraiser.donations.reduce((sum, d) => sum + BigInt(d.amountWei), 0n)
-  const progress = (Number(raised) / Number(fundraiser.goalAmountWei)) * 100
+  const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`${fundraiser?.title} - Help support this cause! ${window.location.href}`)}`
+
+  if (!fundraiser) return <div className="container mx-auto p-4">Loading...</div>
+
+  const progress = (fundraiser.totalRaisedCached / fundraiser.goalAmount) * 100
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">{fundraiser.title}</h1>
-      {fundraiser.coverImageUrl && <img src={fundraiser.coverImageUrl} alt={fundraiser.title} className="w-full h-64 object-cover" />}
-      <p>{fundraiser.description}</p>
-      <p>Category: {fundraiser.category}</p>
-      <div className="my-4">
-        <div className="bg-gray-200 rounded-full h-4">
-          <div className="bg-green-500 h-4 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+    <>
+      <Head>
+        <title>{fundraiser.title}</title>
+        <meta property="og:title" content={fundraiser.title} />
+        <meta property="og:description" content={fundraiser.description} />
+        <meta property="og:image" content={fundraiser.coverImageUrl || ''} />
+        <meta property="og:url" content={window.location.href} />
+      </Head>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold">{fundraiser.title}</h1>
+        {fundraiser.coverImageUrl && <img src={fundraiser.coverImageUrl} alt={fundraiser.title} className="w-full h-64 object-cover my-4" />}
+        <p className="text-lg">{fundraiser.description}</p>
+        <p>Category: {fundraiser.category}</p>
+        <div className="my-4">
+          <div className="bg-gray-200 rounded-full h-4">
+            <div className="bg-green-500 h-4 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+          </div>
+          <p>Raised: {fundraiser.totalRaisedCached} / {fundraiser.goalAmount} ETH</p>
         </div>
-        <p>Raised: {raised.toString()} / {fundraiser.goalAmountWei} wei</p>
+        <div className="my-4">
+          <input
+            type="number"
+            placeholder="Amount in ETH"
+            value={donateAmount}
+            onChange={e => setDonateAmount(e.target.value)}
+            className="p-2 border mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Your Name (optional)"
+            value={donorName}
+            onChange={e => setDonorName(e.target.value)}
+            className="p-2 border mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Message (optional)"
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            className="p-2 border mr-2"
+          />
+          <button onClick={handleDonate} className="px-4 py-2 bg-green-500 text-white rounded mr-2">Donate</button>
+          {donationId && (
+            <button onClick={handleConfirm} className="px-4 py-2 bg-blue-500 text-white rounded">Mark as Paid</button>
+          )}
+        </div>
+        <a href={shareUrl} target="_blank" className="px-4 py-2 bg-purple-500 text-white rounded mr-2">Share on Farcaster</a>
+        <button className="px-4 py-2 bg-red-500 text-white rounded">Report</button>
+        <h2 className="text-2xl font-semibold mt-8">Donations</h2>
+        <ul className="space-y-2">
+          {fundraiser.donations.map(d => (
+            <li key={d.id} className="border p-2 rounded">
+              <p><strong>{d.donorName || 'Anonymous'}</strong> - {d.amount} ETH</p>
+              {d.message && <p>{d.message}</p>}
+              <p className="text-sm text-gray-500">{new Date(d.createdAt).toLocaleString()} - {d.status}</p>
+            </li>
+          ))}
+        </ul>
+        <h2 className="text-2xl font-semibold mt-8">Updates</h2>
+        <ul className="space-y-2">
+          {fundraiser.updates.map(u => (
+            <li key={u.id} className="border p-2 rounded">
+              <p>{u.text}</p>
+              {u.imageUrl && <img src={u.imageUrl} alt="update" className="w-32 mt-2" />}
+              <p className="text-sm text-gray-500">{new Date(u.createdAt).toLocaleString()}</p>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="my-4">
-        <input
-          type="text"
-          placeholder="Amount in ETH"
-          value={donateAmount}
-          onChange={e => setDonateAmount(e.target.value)}
-          className="p-2 border mr-2"
-        />
-        <button onClick={handleDonate} className="px-4 py-2 bg-green-500 text-white rounded" disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Donate'}
-        </button>
-      </div>
-      <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Share on Farcaster</button>
-      <button className="px-4 py-2 bg-red-500 text-white rounded">Report</button>
-      <h2 className="text-xl font-semibold mt-4">Donations</h2>
-      <ul>
-        {fundraiser.donations.map(d => (
-          <li key={d.id}>{d.donorAddress.slice(0,6)}...{d.donorAddress.slice(-4)} - {d.amountWei} wei</li>
-        ))}
-      </ul>
-      <h2 className="text-xl font-semibold mt-4">Updates</h2>
-      <ul>
-        {fundraiser.updates.map(u => (
-          <li key={u.id}>
-            <p>{u.text}</p>
-            {u.imageUrl && <img src={u.imageUrl} alt="update" className="w-32" />}
-          </li>
-        ))}
-      </ul>
-    </div>
+    </>
   )
 }
