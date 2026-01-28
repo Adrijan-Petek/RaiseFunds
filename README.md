@@ -6,6 +6,37 @@
 
 A decentralized fundraising platform built on Farcaster, enabling users to create, share, and donate to fundraisers directly onchain. Developed with modern web technologies for a seamless and secure experience.
 
+## How It Works
+
+### Current MVP (Placeholder Donations)
+
+RaiseFunds is currently in MVP stage with offchain placeholder donation logic to focus on UI/UX and core features. Donations are simulated:
+
+1. **Fundraiser Creation**: Creators submit fundraiser details via a form. Data is stored in PostgreSQL.
+2. **Donation Process**:
+   - Donors enter amount, name, and message.
+   - A PENDING donation record is created in the database.
+   - Donors click "Mark as Paid" to confirm (simulating payment).
+   - Donation status changes to CONFIRMED, and fundraiser total is updated.
+3. **Sharing**: Fundraisers can be shared on Farcaster with prefilled posts and OpenGraph previews.
+4. **Moderation**: Users can report fundraisers; admins can hide them.
+
+This allows testing of the full user flow without onchain complexity.
+
+### Future Onchain Implementation
+
+Once visuals are finalized, we will write bulletproof smart contracts:
+
+- **FundraiserRegistry**: Solidity contract to create and manage fundraiser configs. Deploys FundraisingVault for each campaign.
+- **FundraisingVault**: ERC-4626-like vault that accepts ETH donations, tracks totals, and allows withdrawals with rules (e.g., milestones, escrow).
+- **Integration**:
+  - Replace placeholder donations with real tx submissions.
+  - Verify tx receipts onchain.
+  - Index events for real-time updates.
+  - Add wallet connections for seamless donations.
+
+The codebase uses fields like `registryCampaignId`, `vaultAddress`, and `paymentRef` to plug in onchain logic easily.
+
 ## Features
 
 - **Fundraiser Creation**: Users can create fundraisers with titles, descriptions, goals, beneficiary addresses, and cover images.
