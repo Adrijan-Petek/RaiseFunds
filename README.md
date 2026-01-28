@@ -1,5 +1,3 @@
-# RaiseFunds
-
 <p align="center">
   <img src="public/logo/logo1.png" alt="RaiseFunds Logo" width="400">
 </p>
