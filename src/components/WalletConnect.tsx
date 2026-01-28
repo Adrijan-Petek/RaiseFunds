@@ -7,7 +7,7 @@ import { EthereumProvider } from '@walletconnect/ethereum-provider'
 
 function IconBadge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg))]">
+    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg))]">
       {children}
     </div>
   )
@@ -16,7 +16,7 @@ function IconBadge({ children }: { children: React.ReactNode }) {
 function MetaMaskIcon() {
   // simple vector mark (not official, but professional-looking and consistent)
   return (
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
       <path fill="#F6851B" d="M10 10l18 14-3 7L10 10zm44 0L36 24l3 7 15-21z" />
       <path fill="#E2761B" d="M28 24l8 0-4 9-4-9zm-3 7l7 5-9 8 2-13zm14 5l7-5 2 13-9-8z" />
       <path fill="#D7C1B3" d="M23 44l9 6 9-6-9 13-9-13z" />
@@ -26,7 +26,7 @@ function MetaMaskIcon() {
 
 function RainbowIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
       <path fill="#7C3AED" d="M32 10c12 0 22 10 22 22h-8c0-7.7-6.3-14-14-14s-14 6.3-14 14H10C10 20 20 10 32 10z" />
       <path fill="#3B82F6" d="M32 18c7.7 0 14 6.3 14 14h-8c0-3.3-2.7-6-6-6s-6 2.7-6 6h-8c0-7.7 6.3-14 14-14z" />
       <path fill="#EC4899" d="M32 26c3.3 0 6 2.7 6 6h-4c0-1.1-.9-2-2-2s-2 .9-2 2h-4c0-3.3 2.7-6 6-6z" />
@@ -36,7 +36,7 @@ function RainbowIcon() {
 
 function CoinbaseIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
       <circle cx="32" cy="32" r="28" fill="#0052FF" />
       <circle cx="32" cy="32" r="14" fill="white" />
       <rect x="30" y="22" width="18" height="20" rx="2" fill="#0052FF" />
@@ -46,7 +46,7 @@ function CoinbaseIcon() {
 
 function FarcasterIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
       <rect x="10" y="10" width="44" height="44" rx="12" fill="#7C3AED" />
       <path
         fill="white"
@@ -58,7 +58,7 @@ function FarcasterIcon() {
 
 function WalletConnectIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
       <rect x="10" y="10" width="44" height="44" rx="22" fill="#3396FF" />
       <path
         fill="white"
@@ -254,27 +254,26 @@ export function WalletConnect() {
         >
           <div className="w-full max-w-sm overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="relative px-6 py-4 border-b border-[rgb(var(--border))]">
+            <div className="flex items-center justify-between px-4 py-1.5 border-b border-[rgb(var(--border))]">
+              <h2 id="wallet-modal-title" className="text-lg font-semibold leading-6 text-[rgb(var(--fg))]">
+                Connect Wallet
+              </h2>
               <button
                 onClick={closeModal}
-                className="absolute right-4 top-4 rounded-full p-2 text-[rgb(var(--muted))] hover:bg-[rgb(var(--bg))] hover:text-[rgb(var(--fg))] transition-all duration-200"
+                className="rounded-full p-2 text-[rgb(var(--muted))] hover:bg-[rgb(var(--bg))] hover:text-[rgb(var(--fg))] transition-all duration-200"
                 aria-label="Close modal"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <h2 id="wallet-modal-title" className="text-lg font-semibold leading-6 text-[rgb(var(--fg))]">
-                Connect Wallet
-              </h2>
-              <p className="mt-1 text-sm text-[rgb(var(--muted))]">Choose your preferred wallet to get started.</p>
             </div>
 
             {/* Body */}
-            <div className="p-4">
+            <div className="px-4 py-2">
               {/* Connected State */}
               {web3Connected && web3Address ? (
-                <div className="mb-4 rounded-2xl border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-4">
+                <div className="mb-3 rounded-2xl border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -288,21 +287,21 @@ export function WalletConnect() {
                     </div>
                     <button
                       onClick={() => disconnect()}
-                      className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                      className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     >
                       Disconnect
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide">Popular Wallets</div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide mt-3">Popular Wallets</div>
 
                   {/* MetaMask */}
                   <button
                     onClick={() => metaMaskConnector && connect({ connector: metaMaskConnector })}
                     disabled={!metaMaskConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
                       <IconBadge>
@@ -332,14 +331,14 @@ export function WalletConnect() {
                   <button
                     onClick={() => rainbowConnector && connect({ connector: rainbowConnector })}
                     disabled={!rainbowConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
                       <IconBadge>
                         <RainbowIcon />
                       </IconBadge>
                       <div className="min-w-0 flex-1">
-                        <div className="text-base font-semibold leading-5">Rainbow</div>
+                        <div className="text-sm font-semibold leading-5">Rainbow</div>
                         <div className="text-sm text-[rgb(var(--muted))]">Mobile wallet</div>
                       </div>
                       <div className="text-sm font-medium text-[rgb(var(--accent))]">
@@ -362,7 +361,7 @@ export function WalletConnect() {
                   <button
                     onClick={() => coinbaseConnector && connect({ connector: coinbaseConnector })}
                     disabled={!coinbaseConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
                       <IconBadge>
@@ -390,13 +389,13 @@ export function WalletConnect() {
                 </div>
               )}
 
-              <div className="my-6 h-px w-full bg-[rgb(var(--border))]" />
+              <div className="my-4 h-px w-full bg-[rgb(var(--border))]" />
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide">Other Options</div>
 
                 {/* Farcaster */}
-                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 hover:bg-[rgb(var(--bg))] transition-colors">
+                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
                   <div className="flex items-center gap-3">
                     <IconBadge>
                       <FarcasterIcon />
@@ -411,12 +410,12 @@ export function WalletConnect() {
                     {farcasterSignedIn ? (
                       <button
                         onClick={handleFarcasterSignOut}
-                        className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                        className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                       >
                         Sign out
                       </button>
                     ) : (
-                      <div className="[&_button]:rounded-xl [&_button]:border [&_button]:border-[rgb(var(--border))] [&_button]:px-3 [&_button]:py-2 [&_button]:text-sm [&_button]:font-medium [&_button]:hover:bg-[rgb(var(--bg))] [&_button]:transition-colors [&_button_svg]:hidden">
+                      <div className="[&_button]:rounded-xl [&_button]:px-3 [&_button]:py-2 [&_button]:text-sm [&_button]:font-medium [&_button]:text-[rgb(var(--accent))] [&_button]:hover:bg-[rgb(var(--bg))] [&_button]:transition-colors [&_button_svg]:hidden">
                         <SignInButton />
                       </div>
                     )}
@@ -424,13 +423,13 @@ export function WalletConnect() {
                 </div>
 
                 {/* WalletConnect */}
-                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 hover:bg-[rgb(var(--bg))] transition-colors">
+                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
                   <div className="flex items-center gap-3">
                     <IconBadge>
                       <WalletConnectIcon />
                     </IconBadge>
                     <div className="min-w-0 flex-1">
-                      <div className="text-base font-semibold leading-5">WalletConnect</div>
+                      <div className="text-sm font-semibold leading-5">WalletConnect</div>
                       <div className="text-sm text-[rgb(var(--muted))]">
                         {wcError ? (
                           <span className="text-red-600 font-medium">{wcError}</span>
@@ -445,7 +444,7 @@ export function WalletConnect() {
                     <button
                       onClick={wcConnected ? handleWalletDisconnect : handleWalletConnect}
                       disabled={wcLoading}
-                      className="shrink-0 rounded-xl border border-[rgb(var(--border))] px-3 py-2 text-sm font-medium hover:bg-[rgb(var(--bg))] disabled:opacity-50 transition-colors"
+                      className="shrink-0 rounded-xl px-3 py-2 text-sm font-medium hover:bg-[rgb(var(--bg))] disabled:opacity-50 transition-colors"
                     >
                       {wcLoading ? (
                         <div className="flex items-center gap-2">
@@ -455,10 +454,10 @@ export function WalletConnect() {
                           </svg>
                           {wcConnected ? 'Disconnecting…' : 'Connecting…'}
                         </div>
-                      ) : wcConnected ? (
-                        'Disconnect'
                       ) : (
-                        'Connect'
+                        <div className="text-sm font-medium text-[rgb(var(--accent))]">
+                          {wcConnected ? 'Disconnect' : 'Connect'}
+                        </div>
                       )}
                     </button>
                   </div>
@@ -467,7 +466,7 @@ export function WalletConnect() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-[rgb(var(--border))] px-4 py-3">
+            <div className="border-t border-[rgb(var(--border))] px-4 py-1.5">
               <p className="text-center text-xs leading-5 text-[rgb(var(--muted))]">
                 By connecting, you agree to our{' '}
                 <a href="#" className="text-[rgb(var(--accent))] hover:underline">
