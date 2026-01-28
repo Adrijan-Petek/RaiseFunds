@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Header } from '@/components/Header'
 
 interface Fundraiser {
   id: string
@@ -40,27 +41,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-        <header className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-            <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/me"
-              className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 py-2 text-sm hover:opacity-90"
-            >
-              My dashboard
-            </Link>
-            <Link
-              href="/new"
-              className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-            >
-              Create fundraiser
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <div className="mb-6 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-5">
           <h1 className="text-2xl font-semibold tracking-tight">Raise funds for anything</h1>

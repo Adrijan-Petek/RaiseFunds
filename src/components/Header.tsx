@@ -7,9 +7,12 @@ import { ThemeToggle } from './ThemeToggle'
 export function Header() {
   return (
     <header className="mb-6 flex items-start justify-between gap-4">
-      <div>
-        <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-        <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
+      <div className="flex items-center gap-3">
+        <img src="/logo/logo.png" alt="RaiseFunds" className="h-8 w-8" />
+        <div>
+          <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
+          <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

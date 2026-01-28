@@ -72,7 +72,12 @@ export async function GET(request: NextRequest) {
       orderBy,
     })
     return NextResponse.json(fundraisers)
-  } catch (error) {
+  } catch (error: any) {
+    console.error('GET /api/fundraisers error:', error)
+    // If DB is unreachable during dev, return empty list so the UI can still render
+    if (error?.message?.includes("Can't reach database server")) {
+      return NextResponse.json([], { status: 200 })
+    }
     return NextResponse.json({ error: 'Failed to fetch fundraisers' }, { status: 500 })
   }
 }
