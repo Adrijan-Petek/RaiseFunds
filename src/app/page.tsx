@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { SplashScreen } from '@/components/SplashScreen'
 
 interface Fundraiser {
   id: string
@@ -20,10 +21,13 @@ export default function Home() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [sort, setSort] = useState('newest')
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
-    fetchFundraisers()
-  }, [search, category, sort])
+    if (!showSplash) {
+      fetchFundraisers()
+    }
+  }, [search, category, sort, showSplash])
 
   const fetchFundraisers = async () => {
     const params = new URLSearchParams()
@@ -34,6 +38,10 @@ export default function Home() {
     const res = await fetch(`/api/fundraisers?${params}`)
     const data = await res.json()
     setFundraisers(data)
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />
   }
 
   return (
