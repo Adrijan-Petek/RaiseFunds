@@ -128,6 +128,10 @@ contract DonationBadges1155 {
         name = collectionName;
         symbol = collectionSymbol;
 
+        // ✅ Soulbound by default
+        soulbound = true;
+        emit SoulboundSet(true);
+
         emit OwnershipTransferred(address(0), initialOwner);
         emit MinterUpdated(address(0), initialMinter);
     }
