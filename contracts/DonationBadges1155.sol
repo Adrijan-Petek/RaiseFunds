@@ -46,6 +46,8 @@ error ZeroAmount();
 error LengthMismatch();
 error InsufficientBalance();
 error UnsafeRecipient();
+error AlreadyMintedForAccount();
+error Soulbound();
 
 contract DonationBadges1155 {
     // Optional collection metadata (helps wallets / marketplaces)
@@ -83,6 +85,13 @@ contract DonationBadges1155 {
     // optional: total supply per id (good for badges + UI)
     mapping(uint256 => uint256) private _totalSupply;
 
+    // --- badge controls ---
+    // If true: each wallet can hold max 1 for tokenId (campaignId)
+    mapping(uint256 => bool) public onePerWallet;
+
+    // Optional: make badges soulbound (non-transferable)
+    bool public soulbound;
+
     // --- ERC165 / interface ids ---
     // IERC165: 0x01ffc9a7
     // IERC1155: 0xd9b67a26
@@ -99,6 +108,9 @@ contract DonationBadges1155 {
     event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values);
     event ApprovalForAll(address indexed account, address indexed operator, bool approved);
     event URI(string value, uint256 indexed id);
+
+    event OnePerWalletSet(uint256 indexed id, bool enabled);
+    event SoulboundSet(bool enabled);
 
     constructor(
         address initialOwner,
@@ -129,6 +141,16 @@ contract DonationBadges1155 {
         if (newMinter == address(0)) revert MinterZero();
         emit MinterUpdated(minter, newMinter);
         minter = newMinter;
+    }
+
+    function setOnePerWallet(uint256 id, bool enabled) external onlyOwner {
+        onePerWallet[id] = enabled;
+        emit OnePerWalletSet(id, enabled);
+    }
+
+    function setSoulbound(bool enabled) external onlyOwner {
+        soulbound = enabled;
+        emit SoulboundSet(enabled);
     }
 
     // --- metadata ---
@@ -191,9 +213,13 @@ contract DonationBadges1155 {
 
     // --- transfers ---
     function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external {
+        if (soulbound) revert Soulbound();
         if (from == address(0) || to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
+
+        // one-per-wallet rule: receiver must not end up with >1
+        if (onePerWallet[id] && _balances[to][id] + amount > 1) revert AlreadyMintedForAccount();
 
         _transferSingle(from, to, id, amount);
         emit TransferSingle(msg.sender, from, to, id, amount);
@@ -208,6 +234,7 @@ contract DonationBadges1155 {
         uint256[] calldata amounts,
         bytes calldata data
     ) external {
+        if (soulbound) revert Soulbound();
         if (from == address(0) || to == address(0)) revert ZeroAddress();
         if (ids.length != amounts.length) revert LengthMismatch();
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
@@ -216,6 +243,8 @@ contract DonationBadges1155 {
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 amt = amounts[i];
             if (amt == 0) revert ZeroAmount();
+
+            if (onePerWallet[ids[i]] && _balances[to][ids[i]] + amt > 1) revert AlreadyMintedForAccount();
             _transferSingle(from, to, ids[i], amt);
         }
 
@@ -237,6 +266,12 @@ contract DonationBadges1155 {
         if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
 
+        // one-per-wallet rule
+        if (onePerWallet[id]) {
+            if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
+            if (amount != 1) revert ZeroAmount(); // keep it strict: exactly 1
+        }
+
         unchecked {
             _balances[to][id] += amount;
             _totalSupply[id] += amount;
@@ -251,8 +286,15 @@ contract DonationBadges1155 {
         if (ids.length != amounts.length) revert LengthMismatch();
 
         for (uint256 i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
             uint256 amt = amounts[i];
             if (amt == 0) revert ZeroAmount();
+
+            if (onePerWallet[id]) {
+                if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
+                if (amt != 1) revert ZeroAmount();
+            }
+
             unchecked {
                 _balances[to][ids[i]] += amt;
                 _totalSupply[ids[i]] += amt;
