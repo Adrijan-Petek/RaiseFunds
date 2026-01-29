@@ -42,6 +42,9 @@ error UriEmpty();
 error UriAlreadySet();
 error ZeroAddress();
 error ZeroAmount();
+error LengthMismatch();
+error InsufficientBalance();
+error UnsafeRecipient();
 
 contract DonationBadges1155 {
     // --- ownership ---
@@ -126,7 +129,7 @@ contract DonationBadges1155 {
 
     /// @notice Optional: allow owner to set many URIs in one tx.
     function setTokenURIBatch(uint256[] calldata ids, string[] calldata uris_) external onlyOwner {
-        if (ids.length != uris_.length) revert UriEmpty();
+        if (ids.length != uris_.length) revert LengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
             string calldata u = uris_[i];
             if (bytes(u).length == 0) revert UriEmpty();
@@ -157,7 +160,7 @@ contract DonationBadges1155 {
         view
         returns (uint256[] memory batchBalances)
     {
-        if (accounts.length != ids.length) revert UriEmpty();
+        if (accounts.length != ids.length) revert LengthMismatch();
         batchBalances = new uint256[](accounts.length);
         for (uint256 i = 0; i < accounts.length; i++) {
             address a = accounts[i];
@@ -178,7 +181,7 @@ contract DonationBadges1155 {
         external
     {
         if (to == address(0)) revert ZeroAddress();
-        if (ids.length != amounts.length) revert UriEmpty();
+        if (ids.length != amounts.length) revert LengthMismatch();
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
 
         for (uint256 i = 0; i < ids.length; i++) {
@@ -190,7 +193,7 @@ contract DonationBadges1155 {
 
     function _safeTransfer(address from, address to, uint256 id, uint256 amount) internal {
         uint256 fromBal = _balances[from][id];
-        require(fromBal >= amount, "INSUFFICIENT_BALANCE");
+        if (fromBal < amount) revert InsufficientBalance();
         unchecked {
             _balances[from][id] = fromBal - amount;
             _balances[to][id] += amount;
@@ -209,7 +212,7 @@ contract DonationBadges1155 {
 
     function mintBatch(address to, uint256[] calldata ids, uint256[] calldata amounts, bytes calldata data) external onlyMinter {
         if (to == address(0)) revert ZeroAddress();
-        if (ids.length != amounts.length) revert UriEmpty();
+        if (ids.length != amounts.length) revert LengthMismatch();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 amt = amounts[i];
@@ -225,20 +228,20 @@ contract DonationBadges1155 {
     function burn(address from, uint256 id, uint256 amount) external {
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
         uint256 bal = _balances[from][id];
-        require(bal >= amount, "INSUFFICIENT_BALANCE");
+        if (bal < amount) revert InsufficientBalance();
         unchecked { _balances[from][id] = bal - amount; }
         emit TransferSingle(msg.sender, from, address(0), id, amount);
     }
 
     function burnBatch(address from, uint256[] calldata ids, uint256[] calldata amounts) external {
-        if (ids.length != amounts.length) revert UriEmpty();
+        if (ids.length != amounts.length) revert LengthMismatch();
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 amt = amounts[i];
             uint256 bal = _balances[from][id];
-            require(bal >= amt, "INSUFFICIENT_BALANCE");
+            if (bal < amt) revert InsufficientBalance();
             unchecked { _balances[from][id] = bal - amt; }
         }
         emit TransferBatch(msg.sender, from, address(0), ids, amounts);
@@ -258,7 +261,7 @@ contract DonationBadges1155 {
         (bool ok, bytes memory ret) = to.call(
             abi.encodeWithSelector(0xf23a6e61, operator, from, id, value, data)
         );
-        require(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xf23a6e61, "UNSAFE_RECIPIENT");
+        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xf23a6e61)) revert UnsafeRecipient();
     }
 
     function _doSafeBatchTransferAcceptanceCheck(
@@ -274,6 +277,6 @@ contract DonationBadges1155 {
         (bool ok, bytes memory ret) = to.call(
             abi.encodeWithSelector(0xbc197c81, operator, from, ids, values, data)
         );
-        require(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xbc197c81, "UNSAFE_RECIPIENT");
+        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xbc197c81)) revert UnsafeRecipient();
     }
 }
