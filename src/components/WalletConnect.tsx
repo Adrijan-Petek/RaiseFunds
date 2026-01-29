@@ -20,6 +20,17 @@ function IconBadge({ src, alt }: { src: string; alt: string }) {
   )
 }
 
+function normalizeAvatarUrl(input: string | null | undefined): string | null {
+  if (!input) return null
+  if (input.startsWith('ipfs://')) {
+    const cid = input.replace('ipfs://', '')
+    return `https://ipfs.io/ipfs/${cid}`
+  }
+  if (input.startsWith('http://') || input.startsWith('https://')) return input
+  // ENS avatars can be NFT references (e.g., eip155:...); ignore for now.
+  return null
+}
+
 export function WalletConnect() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -44,15 +55,16 @@ export function WalletConnect() {
     chainId: mainnet.id,
     query: { enabled: Boolean(web3Address) },
   })
+  const resolvedPrimaryName = useMemo(() => ensName || baseName || null, [baseName, ensName])
   const { data: ensAvatar } = useEnsAvatar({
-    name: ensName || undefined,
+    name: resolvedPrimaryName || undefined,
     chainId: mainnet.id,
-    query: { enabled: Boolean(ensName) },
+    query: { enabled: Boolean(resolvedPrimaryName) },
   })
 
   const buttonAvatar = useMemo(() => {
-    if (web3Connected) return ensAvatar || null
-    if (farcasterSignedIn) return farcasterProfile?.pfpUrl || null
+    if (web3Connected) return normalizeAvatarUrl(ensAvatar)
+    if (farcasterSignedIn) return normalizeAvatarUrl(farcasterProfile?.pfpUrl)
     return null
   }, [ensAvatar, farcasterProfile?.pfpUrl, farcasterSignedIn, web3Connected])
 
