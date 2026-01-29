@@ -1,20 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Mock reports data
-const mockReports = [
-  {
-    id: 'r1',
-    fundraiserId: '1',
-    reason: 'Suspicious activity',
-    details: 'This fundraiser seems suspicious',
-    createdAt: new Date('2024-01-20'),
-    fundraiser: {
-      id: '1',
-      title: 'Help fund surgery costs',
-      status: 'ACTIVE'
-    }
-  }
-]
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   const adminKey = request.headers.get('x-admin-key')
@@ -23,9 +8,41 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Mock reports - in a real app this would fetch from database
-    return NextResponse.json(mockReports)
+    const { data: reports, error } = await supabase
+      .from('reports')
+      .select(`
+        *,
+        fundraisers (
+          id,
+          title,
+          status
+        )
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 })
+    }
+
+    // Transform the response to match the expected format
+    const transformedReports = reports.map(report => ({
+      id: report.id,
+      fundraiserId: report.fundraiser_id,
+      reason: report.reason,
+      details: report.details,
+      status: report.status,
+      createdAt: report.created_at,
+      fundraiser: report.fundraisers ? {
+        id: report.fundraisers.id,
+        title: report.fundraisers.title,
+        status: report.fundraisers.status
+      } : null
+    }))
+
+    return NextResponse.json(transformedReports)
   } catch (error) {
+    console.error('GET /api/admin error:', error)
     return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 })
   }
 }
@@ -41,12 +58,20 @@ export async function POST(request: NextRequest) {
     const { fundraiserId, action } = body
 
     if (action === 'hide') {
-      // Mock update - in a real app this would update the database
-      console.log(`Hiding fundraiser ${fundraiserId}`)
+      const { error } = await supabase
+        .from('fundraisers')
+        .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
+        .eq('id', fundraiserId)
+
+      if (error) {
+        console.error('Supabase error:', error)
+        return NextResponse.json({ error: 'Failed to hide fundraiser' }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error('POST /api/admin error:', error)
     return NextResponse.json({ error: 'Failed to perform action' }, { status: 500 })
   }
 }

@@ -25,14 +25,25 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchFundraisers() {
-      const params = new URLSearchParams()
-      if (search) params.set('search', search)
-      if (category) params.set('category', category)
-      params.set('sort', sort)
+      try {
+        const params = new URLSearchParams()
+        if (search) params.set('search', search)
+        if (category) params.set('category', category)
+        params.set('sort', sort)
 
-      const res = await fetch(`/api/fundraisers?${params}`)
-      const data = await res.json()
-      setFundraisers(data)
+        const res = await fetch(`/api/fundraisers?${params}`)
+        const data = await res.json()
+
+        if (res.ok) {
+          setFundraisers(Array.isArray(data) ? data : [])
+        } else {
+          console.error('Failed to fetch fundraisers:', data)
+          setFundraisers([])
+        }
+      } catch (error) {
+        console.error('Error fetching fundraisers:', error)
+        setFundraisers([])
+      }
     }
 
     fetchFundraisers()

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { supabase } from '@/lib/supabase'
 
 const createFundraiserSchema = z.object({
   title: z.string().min(1),
@@ -9,72 +10,60 @@ const createFundraiserSchema = z.object({
   coverImageUrl: z.string().optional(),
   category: z.string().min(1),
   deadline: z.string().optional(),
+  creatorUsername: z.string().min(1),
 })
-
-// Mock data for fundraisers
-const mockFundraisers = [
-  {
-    id: '1',
-    title: 'Help fund surgery costs',
-    description: 'Supporting urgent medical expenses. Any amount helps.',
-    goalAmount: 5,
-    totalRaisedCached: 2.14,
-    coverImageUrl: null,
-    category: 'Medical',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-01'),
-    creator: { username: 'creator1' },
-    _count: { donations: 12 }
-  },
-  {
-    id: '2',
-    title: 'Community garden project',
-    description: 'Building a sustainable community garden for local families.',
-    goalAmount: 10,
-    totalRaisedCached: 7.5,
-    coverImageUrl: null,
-    category: 'Community',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-02'),
-    creator: { username: 'creator2' },
-    _count: { donations: 25 }
-  },
-  {
-    id: '3',
-    title: 'Open source development',
-    description: 'Funding development of an open source tool for developers.',
-    goalAmount: 15,
-    totalRaisedCached: 12.8,
-    coverImageUrl: null,
-    category: 'Open source',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-03'),
-    creator: { username: 'creator3' },
-    _count: { donations: 45 }
-  }
-]
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const data = createFundraiserSchema.parse(body)
 
-    // Mock response - in a real app this would save to a database
-    const newFundraiser = {
-      id: Date.now().toString(),
-      ...data,
-      totalRaisedCached: 0,
-      status: 'ACTIVE',
-      createdAt: new Date(),
-      creator: { username: 'new-creator' },
-      _count: { donations: 0 }
+    const { data: fundraiser, error } = await supabase
+      .from('fundraisers')
+      .insert({
+        title: data.title,
+        description: data.description,
+        goal_amount: data.goalAmount,
+        beneficiary_address: data.beneficiaryAddress,
+        cover_image_url: data.coverImageUrl,
+        category: data.category,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+        creator_username: data.creatorUsername,
+      })
+      .select(`
+        *,
+        _count:donations(count)
+      `)
+      .single()
+
+    if (error) {
+      console.error('Supabase insert error:', error)
+      return NextResponse.json({ error: 'Failed to create fundraiser', details: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(newFundraiser, { status: 201 })
+    // Transform the response to match the expected format
+    const transformedFundraiser = {
+      id: fundraiser.id,
+      title: fundraiser.title,
+      description: fundraiser.description,
+      goalAmount: parseFloat(fundraiser.goal_amount),
+      totalRaisedCached: parseFloat(fundraiser.total_raised_cached),
+      beneficiaryAddress: fundraiser.beneficiary_address,
+      coverImageUrl: fundraiser.cover_image_url,
+      category: fundraiser.category,
+      deadline: fundraiser.deadline,
+      status: fundraiser.status,
+      createdAt: fundraiser.created_at,
+      creator: { username: fundraiser.creator_username },
+      _count: { donations: fundraiser._count?.[0]?.count || 0 }
+    }
+
+    return NextResponse.json(transformedFundraiser, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
+    console.error('POST /api/fundraisers error:', error)
     return NextResponse.json({ error: 'Failed to create fundraiser' }, { status: 500 })
   }
 }
@@ -86,30 +75,55 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const sort = searchParams.get('sort') || 'newest'
 
-    let filteredFundraisers = [...mockFundraisers]
+    let query = supabase
+      .from('fundraisers')
+      .select(`
+        *,
+        _count:donations(count)
+      `)
 
     // Filter by category
     if (category) {
-      filteredFundraisers = filteredFundraisers.filter(f => f.category === category)
+      query = query.eq('category', category)
     }
 
     // Filter by search
     if (search) {
-      const searchLower = search.toLowerCase()
-      filteredFundraisers = filteredFundraisers.filter(f =>
-        f.title.toLowerCase().includes(searchLower) ||
-        f.description.toLowerCase().includes(searchLower)
-      )
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
     }
 
     // Sort
     if (sort === 'trending') {
-      filteredFundraisers.sort((a, b) => b.totalRaisedCached - a.totalRaisedCached)
+      query = query.order('total_raised_cached', { ascending: false })
     } else {
-      filteredFundraisers.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      query = query.order('created_at', { ascending: false })
     }
 
-    return NextResponse.json(filteredFundraisers)
+    const { data: fundraisers, error } = await query
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json({ error: 'Failed to fetch fundraisers' }, { status: 500 })
+    }
+
+    // Transform the response to match the expected format
+    const transformedFundraisers = fundraisers.map(fundraiser => ({
+      id: fundraiser.id,
+      title: fundraiser.title,
+      description: fundraiser.description,
+      goalAmount: parseFloat(fundraiser.goal_amount),
+      totalRaisedCached: parseFloat(fundraiser.total_raised_cached),
+      beneficiaryAddress: fundraiser.beneficiary_address,
+      coverImageUrl: fundraiser.cover_image_url,
+      category: fundraiser.category,
+      deadline: fundraiser.deadline,
+      status: fundraiser.status,
+      createdAt: fundraiser.created_at,
+      creator: { username: fundraiser.creator_username },
+      _count: { donations: fundraiser._count?.[0]?.count || 0 }
+    }))
+
+    return NextResponse.json(transformedFundraisers)
   } catch (error: any) {
     console.error('GET /api/fundraisers error:', error)
     return NextResponse.json({ error: 'Failed to fetch fundraisers' }, { status: 500 })

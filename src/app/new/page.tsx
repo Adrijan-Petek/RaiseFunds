@@ -14,6 +14,7 @@ export default function NewFundraiser() {
     coverImageUrl: '',
     category: '',
     deadline: '',
+    creatorUsername: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -170,6 +171,24 @@ export default function NewFundraiser() {
                 />
                 <p className="mt-1 text-xs text-[rgb(var(--muted))]">
                   This is where the raised funds will be sent
+                </p>
+              </div>
+
+              {/* Creator Username */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  Your Username <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="your-username"
+                  value={form.creatorUsername}
+                  onChange={e => setForm({ ...form, creatorUsername: e.target.value })}
+                  className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-3 text-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none"
+                  required
+                />
+                <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                  This will be displayed as the fundraiser creator
                 </p>
               </div>
 

@@ -1,63 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { supabase } from '@/lib/supabase'
 
 const updateStatusSchema = z.object({
-  status: z.enum(['ACTIVE', 'PAUSED', 'ENDED', 'HIDDEN']),
+  status: z.enum(['ACTIVE', 'COMPLETED', 'CANCELLED']),
 })
-
-// Mock data for detailed fundraiser view
-const mockFundraiserDetails = {
-  '1': {
-    id: '1',
-    title: 'Help fund surgery costs',
-    description: 'Supporting urgent medical expenses. Any amount helps.',
-    goalAmount: 5,
-    totalRaisedCached: 2.14,
-    coverImageUrl: null,
-    category: 'Medical',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-01'),
-    beneficiaryAddress: '0x123...',
-    creator: { username: 'creator1' },
-    donations: [
-      { id: 'd1', amount: 0.5, donorAddress: '0xabc...', createdAt: new Date('2024-01-15') },
-      { id: 'd2', amount: 1.0, donorAddress: '0xdef...', createdAt: new Date('2024-01-16') },
-    ],
-    updates: []
-  },
-  '2': {
-    id: '2',
-    title: 'Community garden project',
-    description: 'Building a sustainable community garden for local families.',
-    goalAmount: 10,
-    totalRaisedCached: 7.5,
-    coverImageUrl: null,
-    category: 'Community',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-02'),
-    beneficiaryAddress: '0x456...',
-    creator: { username: 'creator2' },
-    donations: [
-      { id: 'd3', amount: 2.0, donorAddress: '0xghi...', createdAt: new Date('2024-01-10') },
-    ],
-    updates: []
-  },
-  '3': {
-    id: '3',
-    title: 'Open source development',
-    description: 'Funding development of an open source tool for developers.',
-    goalAmount: 15,
-    totalRaisedCached: 12.8,
-    coverImageUrl: null,
-    category: 'Open source',
-    status: 'ACTIVE',
-    createdAt: new Date('2024-01-03'),
-    beneficiaryAddress: '0x789...',
-    creator: { username: 'creator3' },
-    donations: [],
-    updates: []
-  }
-}
 
 export async function GET(request: NextRequest, context: any) {
   try {
@@ -66,12 +13,69 @@ export async function GET(request: NextRequest, context: any) {
     const id = params?.id
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    const fundraiser = mockFundraiserDetails[id as keyof typeof mockFundraiserDetails]
-    if (!fundraiser) {
+    const { data: fundraiser, error } = await supabase
+      .from('fundraisers')
+      .select(`
+        *,
+        donations (
+          id,
+          amount,
+          donor_address,
+          donor_username,
+          message,
+          status,
+          created_at
+        ),
+        fundraiser_updates (
+          id,
+          title,
+          content,
+          image_url,
+          created_at
+        )
+      `)
+      .eq('id', id)
+      .single()
+
+    if (error || !fundraiser) {
+      console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Fundraiser not found' }, { status: 404 })
     }
-    return NextResponse.json(fundraiser)
+
+    // Transform the response to match the expected format
+    const transformedFundraiser = {
+      id: fundraiser.id,
+      title: fundraiser.title,
+      description: fundraiser.description,
+      goalAmount: parseFloat(fundraiser.goal_amount),
+      totalRaisedCached: parseFloat(fundraiser.total_raised_cached),
+      coverImageUrl: fundraiser.cover_image_url,
+      category: fundraiser.category,
+      status: fundraiser.status,
+      createdAt: fundraiser.created_at,
+      beneficiaryAddress: fundraiser.beneficiary_address,
+      creator: { username: fundraiser.creator_username },
+      donations: fundraiser.donations?.map((donation: any) => ({
+        id: donation.id,
+        amount: parseFloat(donation.amount),
+        donorAddress: donation.donor_address,
+        donorUsername: donation.donor_username,
+        message: donation.message,
+        status: donation.status,
+        createdAt: donation.created_at,
+      })) || [],
+      updates: fundraiser.fundraiser_updates?.map((update: any) => ({
+        id: update.id,
+        title: update.title,
+        content: update.content,
+        imageUrl: update.image_url,
+        createdAt: update.created_at,
+      })) || []
+    }
+
+    return NextResponse.json(transformedFundraiser)
   } catch (error) {
+    console.error('GET /api/fundraisers/[id] error:', error)
     return NextResponse.json({ error: 'Failed to fetch fundraiser' }, { status: 500 })
   }
 }
@@ -86,18 +90,39 @@ export async function PATCH(request: NextRequest, context: any) {
     const body = await request.json()
     const data = updateStatusSchema.parse(body)
 
-    // Mock update - in a real app this would update the database
-    const fundraiser = mockFundraiserDetails[id as keyof typeof mockFundraiserDetails]
-    if (!fundraiser) {
+    const { data: fundraiser, error } = await supabase
+      .from('fundraisers')
+      .update({ status: data.status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error || !fundraiser) {
+      console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Fundraiser not found' }, { status: 404 })
     }
 
-    const updatedFundraiser = { ...fundraiser, status: data.status }
-    return NextResponse.json(updatedFundraiser)
+    // Transform the response to match the expected format
+    const transformedFundraiser = {
+      id: fundraiser.id,
+      title: fundraiser.title,
+      description: fundraiser.description,
+      goalAmount: parseFloat(fundraiser.goal_amount),
+      totalRaisedCached: parseFloat(fundraiser.total_raised_cached),
+      coverImageUrl: fundraiser.cover_image_url,
+      category: fundraiser.category,
+      status: fundraiser.status,
+      createdAt: fundraiser.created_at,
+      beneficiaryAddress: fundraiser.beneficiary_address,
+      creator: { username: fundraiser.creator_username }
+    }
+
+    return NextResponse.json(transformedFundraiser)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
+    console.error('PATCH /api/fundraisers/[id] error:', error)
     return NextResponse.json({ error: 'Failed to update fundraiser' }, { status: 500 })
   }
 }
