@@ -9,6 +9,12 @@
 </p>
 
 <p align="center">
+  <a href="https://raise-funds.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/Live%20Demo-raise--funds.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo">
+  </a>
+</p>
+
+<p align="center">
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#installation">Installation</a> •
