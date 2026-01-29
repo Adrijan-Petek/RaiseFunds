@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
+import { useAccount, useConnect, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
 import { SignInButton, useProfile } from '@farcaster/auth-kit'
 import { EthereumProvider } from '@walletconnect/ethereum-provider'
 import { createPublicClient, http, toCoinType } from 'viem'
@@ -44,6 +44,17 @@ export function WalletConnect() {
     chainId: mainnet.id,
     query: { enabled: Boolean(web3Address) },
   })
+  const { data: ensAvatar } = useEnsAvatar({
+    name: ensName || undefined,
+    chainId: mainnet.id,
+    query: { enabled: Boolean(ensName) },
+  })
+
+  const buttonAvatar = useMemo(() => {
+    if (web3Connected) return ensAvatar || null
+    if (farcasterSignedIn) return farcasterProfile?.pfpUrl || null
+    return null
+  }, [ensAvatar, farcasterProfile?.pfpUrl, farcasterSignedIn, web3Connected])
 
   useEffect(() => {
     let cancelled = false
@@ -522,7 +533,18 @@ export function WalletConnect() {
         aria-expanded={isModalOpen || isMenuOpen}
         aria-haspopup="menu"
       >
-        {buttonLabel}
+        <span className="flex items-center gap-2">
+          {buttonAvatar ? (
+            <img
+              src={buttonAvatar}
+              alt=""
+              className="h-6 w-6 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--bg))] object-cover"
+            />
+          ) : (
+            <span className="h-6 w-6 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--bg))]" />
+          )}
+          <span className="truncate">{buttonLabel}</span>
+        </span>
       </button>
 
       {isMenuOpen && anyConnected && (
