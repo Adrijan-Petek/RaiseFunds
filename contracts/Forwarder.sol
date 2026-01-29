@@ -221,10 +221,14 @@ contract Forwarder is Ownable, ReentrancyGuard {
     error MetadataRequired();
     error DurationTooLong();
 
+    // Optional: replace revert strings with custom errors for a bit less gas
+    error DirectEthNotAllowed();
+    error DirectCallNotAllowed();
+
     constructor(address protocolOwner) Ownable(protocolOwner) {}
 
-    receive() external payable { revert("DIRECT_ETH_NOT_ALLOWED"); }
-    fallback() external payable { revert("DIRECT_CALL_NOT_ALLOWED"); }
+    receive() external payable { revert DirectEthNotAllowed(); }
+    fallback() external payable { revert DirectCallNotAllowed(); }
 
     modifier campaignExists(uint256 id) {
         if (campaigns[id].owner == address(0)) revert CampaignNotFound();
