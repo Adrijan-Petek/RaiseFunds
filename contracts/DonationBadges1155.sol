@@ -8,11 +8,11 @@ Designed to work with your Forwarder contract:
 
 - tokenId == campaignId (simple mapping)
 - Mint "donation badge" to donor after a successful donation (your backend or a small minter contract calls mint)
-- Metadata hosted on web3.storage / IPFS
+- Metadata hosted on Storacha/IPFS
 - Uses per-token URI (not a single base URI) because marketplaces/indexers are more reliable with explicit URIs
 
-HOW TO USE WITH web3.storage
-- Upload a folder per campaign badge metadata (or per tier) to web3.storage
+HOW TO USE WITH STORACHA
+- Upload a folder per campaign badge metadata (or per tier) to Storacha
 - Set token URI to: ipfs://<CID>/badge.json
 - `badge.json` example:
 
@@ -24,7 +24,8 @@ HOW TO USE WITH web3.storage
   "attributes": [
     { "trait_type": "campaignId", "value": 12 },
     { "trait_type": "chainId", "value": 8453 },
-    { "trait_type": "platform", "value": "RaiseFunds" }
+    { "trait_type": "platform", "value": "RaiseFunds" },
+    { "trait_type": "soulbound", "value": "permanent" }
   ]
 }
 
@@ -83,9 +84,6 @@ contract DonationBadges1155 {
 
     // balances: owner => (id => amount)
     mapping(address => mapping(uint256 => uint256)) private _balances;
-
-    // operator approvals: owner => (operator => approved)
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     // optional: total supply per id (good for badges + UI)
     mapping(uint256 => uint256) private _totalSupply;
@@ -173,17 +171,7 @@ contract DonationBadges1155 {
         }
     }
 
-    // --- approvals ---
-    function setApprovalForAll(address operator, bool approved) external {
-        // approvals are meaningless for soulbound, and would enable 3rd-party transfers if transfers existed.
-        if (approved) revert Soulbound();
-        _operatorApprovals[msg.sender][operator] = false;
-        emit ApprovalForAll(msg.sender, operator, false);
-    }
-
-    function isApprovedForAll(address account, address operator) public view returns (bool) {
-        return _operatorApprovals[account][operator];
-    }
+    // --- approvals (removed: pointless for soulbound) ---
 
     // --- balances / supply ---
     function balanceOf(address account, uint256 id) external view returns (uint256) {
@@ -221,15 +209,6 @@ contract DonationBadges1155 {
 
     function safeBatchTransferFrom(address, address, uint256[] calldata, uint256[] calldata, bytes calldata) external pure {
         revert Soulbound();
-    }
-
-    function _transferSingle(address from, address to, uint256 id, uint256 amount) internal {
-        uint256 fromBal = _balances[from][id];
-        if (fromBal < amount) revert InsufficientBalance();
-        unchecked {
-            _balances[from][id] = fromBal - amount;
-            _balances[to][id] += amount;
-        }
     }
 
     // --- minting (only minter) ---
