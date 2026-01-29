@@ -1,0 +1,28 @@
+{
+  "name": "RaiseFunds Donation Badge #1",
+  "description": "Proof of donation to campaign #1 on RaiseFunds - a decentralized fundraising platform on Base network.",
+  "image": "ipfs://bafybeih5qjz4z2q6zq6zq6zq6zq6zq6zq6zq6zq6zq6zq6zq6zq6zq6zq6/badge.png",
+  "external_url": "https://raisefunds.xyz/campaign/1",
+  "attributes": [
+    {
+      "trait_type": "Campaign ID",
+      "value": 1
+    },
+    {
+      "trait_type": "Network",
+      "value": "Base"
+    },
+    {
+      "trait_type": "Platform",
+      "value": "RaiseFunds"
+    },
+    {
+      "trait_type": "Type",
+      "value": "Donation Badge"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Permanent"
+    }
+  ]
+}

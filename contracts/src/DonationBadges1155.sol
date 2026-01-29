@@ -35,22 +35,22 @@ NOTES
 - If you want onchain verification later, add a `Minter` that checks Forwarder counters or uses signed proofs.
 */
 
-error OwnerZero();
-error NotOwner();
-error MinterZero();
-error NotMinter();
-error NotApproved();
-error UriEmpty();
-error UriAlreadySet();
-error ZeroAddress();
-error ZeroAmount();
-error LengthMismatch();
-error InsufficientBalance();
-error UnsafeRecipient();
-error MaxOnePerWallet();
-error Soulbound();
-error MustMintExactlyOne();
-error UriNotSet();
+error BadgeOwnerZero();
+error BadgeNotOwner();
+error BadgeMinterZero();
+error BadgeNotMinter();
+error BadgeNotApproved();
+error BadgeUriEmpty();
+error BadgeUriAlreadySet();
+error BadgeZeroAddress();
+error BadgeZeroAmount();
+error BadgeLengthMismatch();
+error BadgeInsufficientBalance();
+error BadgeUnsafeRecipient();
+error BadgeMaxOnePerWallet();
+error BadgeSoulbound();
+error BadgeMustMintExactlyOne();
+error BadgeUriNotSet();
 
 contract DonationBadges1155 {
     // Optional collection metadata (helps wallets / marketplaces)
@@ -65,7 +65,7 @@ contract DonationBadges1155 {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
+        if (msg.sender != owner) revert BadgeNotOwner();
         _;
     }
 
@@ -74,7 +74,7 @@ contract DonationBadges1155 {
     event MinterUpdated(address indexed previousMinter, address indexed newMinter);
 
     modifier onlyMinter() {
-        if (msg.sender != minter) revert NotMinter();
+        if (msg.sender != minter) revert BadgeNotMinter();
         _;
     }
 
@@ -117,8 +117,8 @@ contract DonationBadges1155 {
         string memory collectionName,
         string memory collectionSymbol
     ) {
-        if (initialOwner == address(0)) revert OwnerZero();
-        if (initialMinter == address(0)) revert MinterZero();
+        if (initialOwner == address(0)) revert BadgeOwnerZero();
+        if (initialMinter == address(0)) revert BadgeMinterZero();
 
         owner = initialOwner;
         minter = initialMinter;
@@ -131,13 +131,13 @@ contract DonationBadges1155 {
 
     // --- admin ---
     function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert OwnerZero();
+        if (newOwner == address(0)) revert BadgeOwnerZero();
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
 
     function setMinter(address newMinter) external onlyOwner {
-        if (newMinter == address(0)) revert MinterZero();
+        if (newMinter == address(0)) revert BadgeMinterZero();
         emit MinterUpdated(minter, newMinter);
         minter = newMinter;
     }
@@ -154,18 +154,18 @@ contract DonationBadges1155 {
 
     /// @notice Set token URI ONCE (recommended). tokenId == campaignId.
     function setTokenURI(uint256 id, string calldata newURI) external onlyOwner {
-        if (bytes(newURI).length == 0) revert UriEmpty();
-        if (bytes(_tokenURIs[id]).length != 0) revert UriAlreadySet();
+        if (bytes(newURI).length == 0) revert BadgeUriEmpty();
+        if (bytes(_tokenURIs[id]).length != 0) revert BadgeUriAlreadySet();
         _tokenURIs[id] = newURI;
         emit URI(newURI, id);
     }
 
     function setTokenURIBatch(uint256[] calldata ids, string[] calldata uris_) external onlyOwner {
-        if (ids.length != uris_.length) revert LengthMismatch();
+        if (ids.length != uris_.length) revert BadgeLengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
             string calldata u = uris_[i];
-            if (bytes(u).length == 0) revert UriEmpty();
-            if (bytes(_tokenURIs[ids[i]]).length != 0) revert UriAlreadySet();
+            if (bytes(u).length == 0) revert BadgeUriEmpty();
+            if (bytes(_tokenURIs[ids[i]]).length != 0) revert BadgeUriAlreadySet();
             _tokenURIs[ids[i]] = u;
             emit URI(u, ids[i]);
         }
@@ -175,7 +175,7 @@ contract DonationBadges1155 {
 
     // --- balances / supply ---
     function balanceOf(address account, uint256 id) external view returns (uint256) {
-        if (account == address(0)) revert ZeroAddress();
+        if (account == address(0)) revert BadgeZeroAddress();
         return _balances[account][id];
     }
 
@@ -184,11 +184,11 @@ contract DonationBadges1155 {
         view
         returns (uint256[] memory batchBalances)
     {
-        if (accounts.length != ids.length) revert LengthMismatch();
+        if (accounts.length != ids.length) revert BadgeLengthMismatch();
         batchBalances = new uint256[](accounts.length);
         for (uint256 i = 0; i < accounts.length; i++) {
             address a = accounts[i];
-            if (a == address(0)) revert ZeroAddress();
+            if (a == address(0)) revert BadgeZeroAddress();
             batchBalances[i] = _balances[a][ids[i]];
         }
     }
@@ -204,23 +204,23 @@ contract DonationBadges1155 {
 
     // --- transfers (blocked permanently) ---
     function safeTransferFrom(address, address, uint256, uint256, bytes calldata) external pure {
-        revert Soulbound();
+        revert BadgeSoulbound();
     }
 
     function safeBatchTransferFrom(address, address, uint256[] calldata, uint256[] calldata, bytes calldata) external pure {
-        revert Soulbound();
+        revert BadgeSoulbound();
     }
 
     // --- minting (only minter) ---
     function mint(address to, uint256 id, uint256 amount, bytes calldata data) external onlyMinter {
-        if (bytes(_tokenURIs[id]).length == 0) revert UriNotSet();
-        if (to == address(0)) revert ZeroAddress();
-        if (amount == 0) revert ZeroAmount();
+        if (bytes(_tokenURIs[id]).length == 0) revert BadgeUriNotSet();
+        if (to == address(0)) revert BadgeZeroAddress();
+        if (amount == 0) revert BadgeZeroAmount();
 
         // one-per-wallet rule
         if (onePerWallet[id]) {
-            if (_balances[to][id] != 0) revert MaxOnePerWallet();
-            if (amount != 1) revert MustMintExactlyOne();
+            if (_balances[to][id] != 0) revert BadgeMaxOnePerWallet();
+            if (amount != 1) revert BadgeMustMintExactlyOne();
         }
 
         unchecked {
@@ -233,18 +233,18 @@ contract DonationBadges1155 {
     }
 
     function mintBatch(address to, uint256[] calldata ids, uint256[] calldata amounts, bytes calldata data) external onlyMinter {
-        if (to == address(0)) revert ZeroAddress();
-        if (ids.length != amounts.length) revert LengthMismatch();
+        if (to == address(0)) revert BadgeZeroAddress();
+        if (ids.length != amounts.length) revert BadgeLengthMismatch();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            if (bytes(_tokenURIs[id]).length == 0) revert UriNotSet();
+            if (bytes(_tokenURIs[id]).length == 0) revert BadgeUriNotSet();
             uint256 amt = amounts[i];
-            if (amt == 0) revert ZeroAmount();
+            if (amt == 0) revert BadgeZeroAmount();
 
             if (onePerWallet[id]) {
-                if (_balances[to][id] != 0) revert MaxOnePerWallet();
-                if (amt != 1) revert MustMintExactlyOne();
+                if (_balances[to][id] != 0) revert BadgeMaxOnePerWallet();
+                if (amt != 1) revert BadgeMustMintExactlyOne();
             }
 
             unchecked {
@@ -259,12 +259,12 @@ contract DonationBadges1155 {
 
     // --- burn (optional) ---
     function burn(address from, uint256 id, uint256 amount) external {
-        if (from == address(0)) revert ZeroAddress();
-        if (amount == 0) revert ZeroAmount();
-        if (from != msg.sender) revert NotApproved(); // no approvals in soulbound mode
+        if (from == address(0)) revert BadgeZeroAddress();
+        if (amount == 0) revert BadgeZeroAmount();
+        if (from != msg.sender) revert BadgeNotApproved(); // no approvals in soulbound mode
 
         uint256 bal = _balances[from][id];
-        if (bal < amount) revert InsufficientBalance();
+        if (bal < amount) revert BadgeInsufficientBalance();
 
         unchecked {
             _balances[from][id] = bal - amount;
@@ -275,17 +275,17 @@ contract DonationBadges1155 {
     }
 
     function burnBatch(address from, uint256[] calldata ids, uint256[] calldata amounts) external {
-        if (from == address(0)) revert ZeroAddress();
-        if (ids.length != amounts.length) revert LengthMismatch();
-        if (from != msg.sender) revert NotApproved();
+        if (from == address(0)) revert BadgeZeroAddress();
+        if (ids.length != amounts.length) revert BadgeLengthMismatch();
+        if (from != msg.sender) revert BadgeNotApproved();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 amt = amounts[i];
-            if (amt == 0) revert ZeroAmount();
+            if (amt == 0) revert BadgeZeroAmount();
 
             uint256 bal = _balances[from][id];
-            if (bal < amt) revert InsufficientBalance();
+            if (bal < amt) revert BadgeInsufficientBalance();
 
             unchecked {
                 _balances[from][id] = bal - amt;
@@ -310,7 +310,7 @@ contract DonationBadges1155 {
         (bool ok, bytes memory ret) = to.call(
             abi.encodeWithSelector(0xf23a6e61, operator, from, id, value, data)
         );
-        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xf23a6e61)) revert UnsafeRecipient();
+        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xf23a6e61)) revert BadgeUnsafeRecipient();
     }
 
     function _doSafeBatchTransferAcceptanceCheck(
@@ -326,6 +326,6 @@ contract DonationBadges1155 {
         (bool ok, bytes memory ret) = to.call(
             abi.encodeWithSelector(0xbc197c81, operator, from, ids, values, data)
         );
-        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xbc197c81)) revert UnsafeRecipient();
+        if (!(ok && ret.length == 32 && abi.decode(ret, (bytes4)) == 0xbc197c81)) revert BadgeUnsafeRecipient();
     }
 }

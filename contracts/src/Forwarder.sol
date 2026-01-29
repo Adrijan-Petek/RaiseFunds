@@ -21,6 +21,7 @@ error EndTimeNotExtended();
 
 error CannotRenounceWhilePaused();
 error CannotRenounceWithPendingPause();
+error PauseAlreadyRequested();
 
 interface IERC20 {
     function balanceOf(address a) external view returns (uint256);
@@ -233,11 +234,13 @@ contract Forwarder is Ownable, ReentrancyGuard {
     // --- pause controls (timelocked) ---
     function requestPause() external onlyOwner {
         if (paused) revert AlreadyPaused();
+        if (pauseRequestedAt != 0) revert PauseAlreadyRequested();
         pauseRequestedAt = block.timestamp;
         emit PauseRequested(block.timestamp, block.timestamp + PAUSE_DELAY);
     }
 
     function cancelPauseRequest() external onlyOwner {
+        if (pauseRequestedAt == 0) revert PauseNotRequested();
         pauseRequestedAt = 0;
         emit PauseCancelled();
     }
@@ -265,6 +268,7 @@ contract Forwarder is Ownable, ReentrancyGuard {
     function renounceOwnership() external onlyOwner {
         if (paused) revert CannotRenounceWhilePaused();
         if (pauseRequestedAt != 0) revert CannotRenounceWithPendingPause();
+        pauseRequestedAt = 0; // extra safety
         emit OwnershipTransferred(owner, address(0));
         owner = address(0);
     }
@@ -312,7 +316,7 @@ contract Forwarder is Ownable, ReentrancyGuard {
         if (newEndTime > uint64(block.timestamp) + MAX_DURATION) revert DurationTooLong();
 
         c.endTime = newEndTime;
-        RecipientVault(c.vault).updateEndTime(newEndTime);
+        RecipientVault(payable(c.vault)).updateEndTime(newEndTime);
         emit CampaignExtended(id, newEndTime);
     }
 
@@ -386,7 +390,7 @@ contract Forwarder is Ownable, ReentrancyGuard {
         emit Donated(id, msg.sender, USDC, amount);
 
         IERC20(USDC).safeTransferFrom(msg.sender, c.vault, amount);
-        RecipientVault(c.vault).flushUSDC();
+        RecipientVault(payable(c.vault)).flushUSDC();
     }
 
     function getCampaign(uint256 id) external view campaignExists(id) returns (Campaign memory) {

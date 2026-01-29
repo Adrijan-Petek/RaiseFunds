@@ -94,10 +94,20 @@ The `DonationBadges1155.sol` contract is an ERC-1155 token contract that mints d
 1. **Setup**: Deploy with owner and minter addresses
 2. **Set URIs**: Owner sets token URIs for each campaign (tokenId == campaignId)
 3. **Minting**: After observing a `Donated` event from Forwarder, the minter calls `mint()` to award badges
-4. **Transfers**: Standard ERC-1155 transfers and approvals
+4. **Transfers**: Permanently disabled (soulbound)
 5. **Burning**: Optional burning of badges by holders
 
+### Metadata Storage
+
+Badge metadata should be stored on decentralized storage like IPFS. We recommend using Storacha Network:
+
+- **Storacha Console**: https://console.storacha.network
+
+Upload your badge metadata folder to Storacha and use the resulting IPFS CID in the token URI.
+
 ### Metadata Example
+
+Upload a `badge.json` file to your Storacha space and set the token URI to `ipfs://<CID>/badge.json`:
 
 ```json
 {
@@ -108,7 +118,8 @@ The `DonationBadges1155.sol` contract is an ERC-1155 token contract that mints d
   "attributes": [
     { "trait_type": "campaignId", "value": 12 },
     { "trait_type": "chainId", "value": 8453 },
-    { "trait_type": "platform", "value": "RaiseFunds" }
+    { "trait_type": "platform", "value": "RaiseFunds" },
+    { "trait_type": "soulbound", "value": "permanent" }
   ]
 }
 ```
