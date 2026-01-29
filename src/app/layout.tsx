@@ -6,14 +6,16 @@ import { Providers } from '@/components/Providers'
 
 // const inter = Inter({ subsets: ['latin'] })
 
-// export const metadata: Metadata = {
-//   title: 'RaiseFunds',
-//   description: 'Fundraising on Farcaster',
-//   // icons: {
-//   //   icon: '/icons/favicon.ico',
-//   //   apple: '/icons/apple-touch-icon.png',
-//   // },
-// }
+export const metadata: Metadata = {
+  title: 'RaiseFunds',
+  description: 'A decentralized crowdfunding platform empowering creators and donors through blockchain transparency and social engagement.',
+  icons: {
+    icon: '/icons/favicon.ico',
+    apple: '/icons/apple-touch-icon.png',
+    shortcut: '/icons/favicon.ico',
+  },
+  manifest: '/icons/site.webmanifest',
+}
 
 export default function RootLayout({
   children,
@@ -21,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body>
         <Providers>
           {children}

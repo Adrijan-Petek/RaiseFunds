@@ -48,35 +48,40 @@ To democratize fundraising by providing creators with powerful tools to launch c
 ## ✨ Features
 
 ### 🚀 Core Platform
-- **Intuitive Campaign Creation** - Streamlined form with rich metadata, cover images, and category selection
-- **Real-time Progress Tracking** - Dynamic progress bars with donation history and milestone visualization
-- **Social Integration** - One-click sharing to Farcaster with rich OpenGraph previews
-- **Creator Updates** - Multimedia update system to keep supporters engaged and informed
-- **Advanced Moderation** - Comprehensive reporting system with admin controls
+- **Dual Currency Support**: Create fundraisers and make donations in both ETH and USDC
+- **Intuitive Campaign Creation**: Streamlined form with rich metadata, cover images, and category selection
+- **Real-time Progress Tracking**: Dynamic progress bars with donation history and milestone visualization
+- **Social Integration**: One-click sharing to Farcaster with rich OpenGraph previews
+- **Creator Updates**: Multimedia update system to keep supporters engaged and informed
+- **Advanced Moderation**: Comprehensive reporting system with admin controls
 
 ### 💰 Donation Experience
-- **Seamless Donation Flow** - Placeholder system for testing UX with future onchain implementation
-- **Personalized Contributions** - Donor names, messages, and optional anonymity
-- **Transaction Transparency** - Complete donation history with status tracking
-- **Automated Updates** - Real-time fundraiser total calculations and progress synchronization
+- **Multi-Currency Donations**: Choose between ETH and USDC for contributions
+- **Seamless Donation Flow**: Placeholder system for testing UX with future onchain implementation
+- **Personalized Contributions**: Donor names, messages, and optional anonymity
+- **Transaction Transparency**: Complete donation history with status tracking and currency display
+- **Automated Updates**: Real-time fundraiser total calculations and progress synchronization
 
 ### 🔐 Wallet & Identity
-- **Multi-wallet Support** - MetaMask, Rainbow, Coinbase Wallet, and WalletConnect integration
-- **Social Authentication** - Farcaster login with seamless wallet connection
-- **Name Resolution** - ENS and Base name support for user identification
-- **Secure Architecture** - Built with Wagmi and Viem for robust blockchain interactions
+- **Multi-wallet Support**: MetaMask, Rainbow, Coinbase Wallet, and WalletConnect integration
+- **Auto-populated Beneficiary**: Connected wallet automatically fills beneficiary address
+- **Social Authentication**: Farcaster login with seamless wallet connection
+- **Name Resolution**: ENS and Base name support for user identification
+- **Secure Architecture**: Built with Wagmi and Viem for robust blockchain interactions
 
 ### 🎨 User Experience
-- **Responsive Design** - Optimized for desktop, tablet, and mobile devices
-- **Dark/Light Themes** - Automatic theme detection with manual override
-- **Accessibility First** - WCAG compliant with keyboard navigation and screen reader support
-- **Performance Optimized** - Fast loading with Next.js 16 and modern web standards
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Dark/Light Themes**: Automatic theme detection with manual override
+- **Professional Splash Screen**: Engaging animated loading experience with theme-aware colors
+- **Accessibility First**: WCAG compliant with keyboard navigation and screen reader support
+- **Performance Optimized**: Fast loading with Next.js 16 and modern web standards
 
 ### 🔧 Technical Excellence
-- **Type Safety** - Full TypeScript implementation with strict type checking
-- **Modern Architecture** - Next.js 16 App Router with server and client components
-- **API-First Design** - RESTful API with comprehensive documentation
-- **Database Integration** - PostgreSQL with optimized queries and data relationships
+- **Type Safety**: Full TypeScript implementation with strict type checking
+- **Modern Architecture**: Next.js 16 App Router with server and client components
+- **API-First Design**: RESTful API with comprehensive documentation
+- **Database Integration**: PostgreSQL with optimized queries and data relationships
+- **Image Management**: Cloudinary integration for uploads, optimization, and CDN delivery
 
 ---
 
@@ -91,6 +96,7 @@ To democratize fundraising by providing creators with powerful tools to launch c
 | **Blockchain** | Base Network, Viem, Wagmi | Ethereum L2 for fast, low-cost transactions |
 | **Authentication** | WalletConnect, Farcaster Auth | Decentralized identity and social login |
 | **Media** | Cloudinary | Image upload, optimization, and CDN delivery |
+| **UI/UX** | Custom Splash Screen, Favicon | Professional branding and loading experience |
 | **Deployment** | Vercel | Global CDN with automatic scaling |
 
 ### System Architecture
@@ -350,28 +356,35 @@ CMD ["npm", "start"]
 
 ### ✅ Phase 1: MVP (Current)
 - [x] Campaign creation and management
+- [x] Dual currency support (ETH/USDC)
 - [x] Placeholder donation system
 - [x] Social sharing integration
-- [x] Responsive UI/UX
-- [x] Database architecture
+- [x] Responsive UI/UX with dark/light themes
+- [x] Professional splash screen and branding
+- [x] Wallet integration and auto-population
+- [x] Database architecture with PostgreSQL
+- [x] Image upload and management with Cloudinary
 
 ### 🚧 Phase 2: Onchain Integration (Q1 2025)
-- [ ] Smart contract development
-- [ ] Real ETH donation processing
-- [ ] Multi-token support
-- [ ] Gas optimization
+- [ ] Smart contract development for Base network
+- [ ] Real ETH/USDC donation processing
+- [ ] Multi-token support expansion
+- [ ] Gas optimization and transaction efficiency
+- [ ] Onchain progress tracking
 
 ### 🎯 Phase 3: Advanced Features (Q2 2025)
 - [ ] Milestone-based fund releases
 - [ ] Advanced analytics dashboard
-- [ ] Mobile application
-- [ ] Cross-platform sharing
+- [ ] Mobile application (React Native)
+- [ ] Cross-platform sharing enhancements
+- [ ] Email notifications and updates
 
 ### 🌟 Phase 4: Ecosystem Expansion (Q3 2025)
 - [ ] Farcaster Frames v2 integration
-- [ ] NFT rewards system
+- [ ] NFT rewards and collectibles system
 - [ ] DAO governance features
-- [ ] Multi-chain support
+- [ ] Multi-chain support (Optimism, Arbitrum)
+- [ ] DeFi integrations and yield opportunities
 
 ---
 

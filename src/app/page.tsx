@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Header } from '@/components/Header'
+import { SplashScreen } from '@/components/SplashScreen'
 
 interface Fundraiser {
   id: string
@@ -23,6 +24,7 @@ export default function Home() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [sort, setSort] = useState('newest')
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
     async function fetchFundraisers() {
@@ -49,6 +51,10 @@ export default function Home() {
 
     fetchFundraisers()
   }, [search, category, sort])
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />
+  }
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
