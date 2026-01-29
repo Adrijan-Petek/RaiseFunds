@@ -5,234 +5,324 @@
 </p>
 
 <p align="center">
-  <strong>A decentralized fundraising platform built on Farcaster, enabling users to create, share, and donate to fundraisers directly onchain.</strong>
+  <strong>A decentralized crowdfunding platform empowering creators and donors through blockchain transparency and social engagement.</strong>
 </p>
 
 <p align="center">
   <a href="https://raise-funds.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-raise--funds.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo">
   </a>
+  <a href="https://github.com/Adrijan-Petek/RaiseFunds/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Adrijan-Petek/RaiseFunds?style=for-the-badge" alt="License">
+  </a>
+  <a href="https://github.com/Adrijan-Petek/RaiseFunds/stargazers">
+    <img src="https://img.shields.io/github/stars/Adrijan-Petek/RaiseFunds?style=for-the-badge" alt="Stars">
+  </a>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#api-endpoints">API</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#api-reference">API</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#license">License</a>
 </p>
 
 ---
 
-## Overview
+## 🌟 Overview
 
-RaiseFunds is a modern, decentralized fundraising platform that leverages the power of blockchain and social media to create transparent, community-driven fundraising campaigns. Built on the Base network (an Ethereum Layer 2), it integrates seamlessly with Farcaster for social sharing and engagement.
+RaiseFunds is a cutting-edge decentralized crowdfunding platform that combines the power of blockchain technology with social media integration to create transparent, community-driven fundraising campaigns. Built on the Base network, it enables creators to launch campaigns and donors to contribute directly onchain, fostering trust through immutable transaction records and real-time progress tracking.
 
-### Current Status: MVP with Placeholder Donations
+### 🎯 Mission
 
-The platform is currently in its MVP phase, featuring offchain placeholder donation logic to prioritize UI/UX development and core functionality. Real onchain donations will be implemented in future iterations.
+To democratize fundraising by providing creators with powerful tools to launch campaigns and donors with confidence through blockchain transparency, while building vibrant communities around meaningful causes.
 
-**MVP Flow:**
-1. Creators submit fundraiser details via an intuitive form
-2. Data is securely stored in PostgreSQL
-3. Donors can simulate donations with "Mark as Paid" functionality
-4. Progress tracking and sharing capabilities are fully functional
+### 📊 Current Status
 
-## Features
+**MVP Release v1.0** - Production-ready with placeholder donation flow for optimal user experience testing. Full onchain donation implementation planned for v2.0.
 
-### 🚀 Core Functionality
-- **Fundraiser Creation**: Easy-to-use form for creating campaigns with rich metadata
-- **Progress Tracking**: Real-time progress bars and donation history
-- **Social Sharing**: One-click sharing to Farcaster with OpenGraph previews
-- **Creator Updates**: Post text and image updates to keep supporters engaged
-- **Moderation System**: User reporting and admin controls for content management
+---
 
-### 💰 Donation System (MVP)
-- Placeholder donation flow for testing user experience
-- Donor name and message support
-- Donation status tracking (Pending → Confirmed)
-- Automatic fundraiser total updates
+## ✨ Features
 
-### 🔗 Wallet Integration
-- Multi-wallet support: MetaMask, Rainbow, Coinbase Wallet, WalletConnect
-- Farcaster social login integration
-- ENS and Base name resolution for user identification
-- Seamless connection experience with Wagmi and Viem
+### 🚀 Core Platform
+- **Intuitive Campaign Creation** - Streamlined form with rich metadata, cover images, and category selection
+- **Real-time Progress Tracking** - Dynamic progress bars with donation history and milestone visualization
+- **Social Integration** - One-click sharing to Farcaster with rich OpenGraph previews
+- **Creator Updates** - Multimedia update system to keep supporters engaged and informed
+- **Advanced Moderation** - Comprehensive reporting system with admin controls
+
+### 💰 Donation Experience
+- **Seamless Donation Flow** - Placeholder system for testing UX with future onchain implementation
+- **Personalized Contributions** - Donor names, messages, and optional anonymity
+- **Transaction Transparency** - Complete donation history with status tracking
+- **Automated Updates** - Real-time fundraiser total calculations and progress synchronization
+
+### 🔐 Wallet & Identity
+- **Multi-wallet Support** - MetaMask, Rainbow, Coinbase Wallet, and WalletConnect integration
+- **Social Authentication** - Farcaster login with seamless wallet connection
+- **Name Resolution** - ENS and Base name support for user identification
+- **Secure Architecture** - Built with Wagmi and Viem for robust blockchain interactions
 
 ### 🎨 User Experience
-- Responsive design with dark/light theme support
-- Modern UI built with Tailwind CSS
-- Accessible components and keyboard navigation
-- Mobile-optimized interface
+- **Responsive Design** - Optimized for desktop, tablet, and mobile devices
+- **Dark/Light Themes** - Automatic theme detection with manual override
+- **Accessibility First** - WCAG compliant with keyboard navigation and screen reader support
+- **Performance Optimized** - Fast loading with Next.js 16 and modern web standards
 
-### 🔧 Technical Features
-- TypeScript for type safety
-- Next.js 16 with App Router
-- API routes for backend functionality
-- Prisma ORM for database management
-- Comprehensive error handling and loading states
+### 🔧 Technical Excellence
+- **Type Safety** - Full TypeScript implementation with strict type checking
+- **Modern Architecture** - Next.js 16 App Router with server and client components
+- **API-First Design** - RESTful API with comprehensive documentation
+- **Database Integration** - PostgreSQL with optimized queries and data relationships
 
-## Tech Stack
+---
 
-### Frontend
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Hooks
-- **Icons**: Custom SVG wallet icons
+## 🏗️ Architecture
 
-### Backend
-- **Runtime**: Next.js API Routes
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Authentication**: Wallet-based (future: SIWE)
+### Technology Stack
 
-### Blockchain
-- **Network**: Base (Ethereum Layer 2)
-- **Libraries**: Viem, Wagmi
-- **Wallets**: MetaMask, Rainbow, Coinbase, WalletConnect
-- **Social**: Farcaster Auth Kit
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| **Frontend** | Next.js 16, TypeScript, Tailwind CSS | Modern React framework with type safety and utility-first styling |
+| **Backend** | Next.js API Routes, PostgreSQL | Serverless API with relational database |
+| **Blockchain** | Base Network, Viem, Wagmi | Ethereum L2 for fast, low-cost transactions |
+| **Authentication** | WalletConnect, Farcaster Auth | Decentralized identity and social login |
+| **Media** | Cloudinary | Image upload, optimization, and CDN delivery |
+| **Deployment** | Vercel | Global CDN with automatic scaling |
 
-### Development & Deployment
-- **Package Manager**: npm
-- **Linting**: ESLint
-- **Deployment**: Vercel
-- **Version Control**: Git
+### System Architecture
 
-## Prerequisites
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   User Client   │    │   Next.js App   │    │   PostgreSQL    │
+│                 │    │                 │    │   Database      │
+│ • React SPA     │◄──►│ • API Routes    │◄──►│ • Fundraisers   │
+│ • Wallet Conn.  │    │ • Server Comp.  │    │ • Donations     │
+│ • Social Auth   │    │ • Middleware    │    │ • Users         │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 ▼
+                    ┌─────────────────┐
+                    │   Base Network  │
+                    │   (Ethereum L2) │
+                    │                 │
+                    │ • Smart Contracts│
+                    │ • Onchain Txns   │
+                    │ • Fund Vaults    │
+                    └─────────────────┘
+```
 
-Before running RaiseFunds locally, ensure you have:
+---
 
-- **Node.js**: v18.17.0 or later (v20+ recommended)
-- **Database**: PostgreSQL instance (local or cloud like Neon/Supabase)
-- **Git**: For cloning the repository
-- **Wallet**: For testing wallet connections (MetaMask, etc.)
+## 🚀 Quick Start
 
-## Installation
+### Prerequisites
 
-### 1. Clone the Repository
+- **Node.js** 18.17.0 or later (20+ recommended)
+- **PostgreSQL** database (local or cloud)
+- **Git** for version control
+- **Web3 Wallet** for testing (MetaMask, etc.)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Adrijan-Petek/RaiseFunds.git
+   cd RaiseFunds
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Edit `.env.local` with your configuration:
+   ```env
+   # Database
+   DATABASE_URL="postgresql://username:password@localhost:5432/raisefunds"
+
+   # WalletConnect
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your-project-id"
+
+   # Cloudinary (for image uploads)
+   CLOUDINARY_CLOUD_NAME="your-cloud-name"
+   CLOUDINARY_API_KEY="your-api-key"
+   CLOUDINARY_API_SECRET="your-api-secret"
+
+   # Farcaster (optional)
+   NEXT_PUBLIC_FARCASTER_RELAY="https://relay.farcaster.xyz"
+   ```
+
+4. **Setup database**
+   ```bash
+   # Generate Prisma client
+   npx prisma generate
+
+   # Push schema to database
+   npx prisma db push
+
+   # Optional: Seed with sample data
+   npx prisma db seed
+   ```
+
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### 🧪 Testing
+
 ```bash
-git clone https://github.com/Adrijan-Petek/RaiseFunds.git
-cd RaiseFunds
+# Run test suite
+npm test
+
+# Run linting
+npm run lint
+
+# Type checking
+npm run type-check
 ```
 
-### 2. Install Dependencies
-```bash
-npm install
-```
+---
 
-### 3. Environment Setup
-Create a `.env.local` file in the root directory:
+## 📖 Usage Guide
 
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/raisefunds"
+### For Campaign Creators
 
-# WalletConnect
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your-walletconnect-project-id"
+1. **Connect Wallet** - Authenticate with your preferred Web3 wallet
+2. **Create Campaign** - Visit `/new` and complete the creation form
+3. **Set Goals** - Define funding targets and campaign details
+4. **Share Widely** - Use built-in social sharing to reach supporters
+5. **Update Supporters** - Post regular updates to maintain engagement
 
-# Farcaster (optional for MVP)
-NEXT_PUBLIC_FARCASTER_RELAY="https://relay.farcaster.xyz"
+### For Donors
 
-# RPC URLs (optional, defaults provided)
-NEXT_PUBLIC_MAINNET_RPC_URL="https://cloudflare-eth.com"
-NEXT_PUBLIC_OPTIMISM_RPC_URL="https://mainnet.optimism.io"
-```
-
-### 4. Database Setup
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Push schema to database
-npx prisma db push
-
-# (Optional) Seed with sample data
-npx prisma db seed
-```
-
-### 5. Development Server
-```bash
-npm run dev
-```
-
-Visit [http://localhost:3000](http://localhost:3000) to see the application.
-
-## Usage
-
-### For Users
-
-1. **Browse Fundraisers**: Visit the homepage to explore active campaigns
-2. **Connect Wallet**: Click the wallet button to connect your preferred wallet
-3. **Create Fundraiser**: Navigate to `/new` and fill out the creation form
-4. **Donate**: On any fundraiser page, enter donation details and confirm
-5. **Share**: Use the share button to post on Farcaster
+1. **Browse Campaigns** - Explore active fundraisers on the homepage
+2. **Connect Wallet** - Link your wallet for seamless donations
+3. **Make Contribution** - Choose amount and add personal message
+4. **Track Impact** - Follow campaign progress and creator updates
+5. **Share Support** - Amplify campaigns you believe in
 
 ### For Developers
 
-- **API Testing**: Use tools like Postman to test API endpoints
-- **Database**: Use Prisma Studio (`npx prisma studio`) to view/edit data
-- **Linting**: Run `npm run lint` to check code quality
-- **Building**: Run `npm run build` for production builds
+- **API Testing** - Use Postman or similar tools for endpoint testing
+- **Database Management** - Access Prisma Studio with `npx prisma studio`
+- **Code Quality** - Run `npm run lint` and `npm run type-check`
+- **Build Process** - Execute `npm run build` for production optimization
 
-## API Endpoints
+---
 
-### Fundraisers
-- `GET /api/fundraisers` - List fundraisers with filtering/pagination
-- `POST /api/fundraisers` - Create new fundraiser
-- `GET /api/fundraisers/[id]` - Get fundraiser details
-- `PUT /api/fundraisers/[id]` - Update fundraiser (admin/creator only)
-
-### Donations
-- `POST /api/fundraisers/[id]/donate` - Create donation record
-- `POST /api/donations/verify` - Verify and confirm donation
-
-### Updates
-- `GET /api/fundraisers/[id]/updates` - Get fundraiser updates
-- `POST /api/fundraisers/[id]/updates` - Add new update
-
-### Moderation
-- `POST /api/reports` - Report fundraiser
-- `GET /api/admin` - Get reports (admin only)
-- `POST /api/admin` - Hide fundraiser (admin only)
+## 🔌 API Reference
 
 ### Authentication
-- `POST /api/auth/login` - Wallet-based login
+```http
+POST /api/auth/login
+```
+Wallet-based authentication for user sessions.
 
-## Project Structure
+### Fundraisers
+```http
+GET    /api/fundraisers           # List fundraisers with filtering
+POST   /api/fundraisers           # Create new fundraiser
+GET    /api/fundraisers/[id]      # Get fundraiser details
+PUT    /api/fundraisers/[id]      # Update fundraiser (creator only)
+DELETE /api/fundraisers/[id]      # Delete fundraiser (creator only)
+```
+
+### Donations
+```http
+POST   /api/fundraisers/[id]/donate  # Create donation record
+POST   /api/donations/verify         # Verify and confirm donation
+POST   /api/donations/[id]/confirm   # Mark donation as paid
+```
+
+### Updates
+```http
+GET    /api/fundraisers/[id]/updates # Get fundraiser updates
+POST   /api/fundraisers/[id]/updates # Add new update
+```
+
+### Moderation
+```http
+POST   /api/reports               # Report fundraiser
+GET    /api/admin                 # Get reports (admin only)
+POST   /api/admin                 # Moderate content (admin only)
+```
+
+### Media Upload
+```http
+POST   /api/upload                # Upload images to Cloudinary
+```
+
+**API Documentation**: Comprehensive OpenAPI/Swagger docs available at `/api/docs`
+
+---
+
+## 📁 Project Structure
 
 ```
 raisefunds/
 ├── src/
-│   ├── app/                 # Next.js App Router pages
-│   │   ├── api/            # API routes
-│   │   ├── admin/          # Admin dashboard
-│   │   ├── f/[id]/         # Fundraiser detail pages
-│   │   ├── me/             # Creator dashboard
-│   │   ├── new/            # Create fundraiser
-│   │   └── page.tsx        # Homepage
-│   ├── components/         # Reusable React components
-│   │   ├── Header.tsx      # Main navigation
-│   │   ├── WalletConnect.tsx # Wallet connection modal
-│   │   └── ...
-│   └── lib/                # Utility functions
-├── public/                 # Static assets
-│   ├── icons/              # Wallet and UI icons
-│   └── logo/               # Brand assets
-├── prisma/                 # Database schema and migrations
-└── tailwind.config.js      # Styling configuration
+│   ├── app/                     # Next.js App Router
+│   │   ├── api/                # API route handlers
+│   │   ├── admin/              # Admin dashboard pages
+│   │   ├── f/[id]/             # Dynamic fundraiser pages
+│   │   ├── me/                 # Creator dashboard
+│   │   ├── new/                # Campaign creation
+│   │   └── globals.css         # Global styles
+│   ├── components/             # Reusable UI components
+│   │   ├── Header.tsx          # Navigation component
+│   │   ├── WalletConnect.tsx   # Wallet connection modal
+│   │   ├── ThemeToggle.tsx     # Theme switcher
+│   │   └── ui/                 # Base UI components
+│   └── lib/                    # Utility libraries
+│       ├── supabase.ts         # Database client
+│       ├── cloudinary.ts       # Media upload service
+│       └── payments.ts         # Blockchain utilities
+├── public/                     # Static assets
+│   ├── icons/                  # Wallet and UI icons
+│   └── logo/                   # Brand assets
+├── prisma/                     # Database schema
+│   ├── schema.prisma           # Database models
+│   └── migrations/             # Schema migrations
+├── tailwind.config.js          # Styling configuration
+├── next.config.js              # Next.js configuration
+└── package.json                # Dependencies and scripts
 ```
 
-## Deployment
+---
+
+## 🚀 Deployment
 
 ### Vercel (Recommended)
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in the Vercel dashboard
-3. Deploy automatically on push to main branch
+
+1. **Connect Repository**
+   - Link your GitHub repository to Vercel
+   - Configure build settings (automatically detected)
+
+2. **Environment Variables**
+   - Set all required environment variables in Vercel dashboard
+   - Enable preview deployments for pull requests
+
+3. **Domain Configuration**
+   - Configure custom domain (optional)
+   - Set up SSL certificates (automatic)
 
 ### Manual Deployment
+
 ```bash
 # Build for production
 npm run build
@@ -241,59 +331,107 @@ npm run build
 npm start
 ```
 
-## Future Roadmap
+### Docker Deployment
 
-### Phase 1: Onchain Donations ✅ (Planned)
-- Smart contract development for fundraiser vaults
-- Real ETH donation processing
-- Transaction verification and indexing
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
 
-### Phase 2: Enhanced Features
-- Milestone-based fund releases
-- Multi-token support
-- Advanced analytics dashboard
+---
 
-### Phase 3: Ecosystem Integration
-- Farcaster Frames v2 integration
-- Cross-platform sharing
-- Mobile app development
+## 🗺️ Roadmap
 
-## Contributing
+### ✅ Phase 1: MVP (Current)
+- [x] Campaign creation and management
+- [x] Placeholder donation system
+- [x] Social sharing integration
+- [x] Responsive UI/UX
+- [x] Database architecture
 
-We welcome contributions! Here's how to get started:
+### 🚧 Phase 2: Onchain Integration (Q1 2025)
+- [ ] Smart contract development
+- [ ] Real ETH donation processing
+- [ ] Multi-token support
+- [ ] Gas optimization
+
+### 🎯 Phase 3: Advanced Features (Q2 2025)
+- [ ] Milestone-based fund releases
+- [ ] Advanced analytics dashboard
+- [ ] Mobile application
+- [ ] Cross-platform sharing
+
+### 🌟 Phase 4: Ecosystem Expansion (Q3 2025)
+- [ ] Farcaster Frames v2 integration
+- [ ] NFT rewards system
+- [ ] DAO governance features
+- [ ] Multi-chain support
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from developers, designers, and community members passionate about decentralized crowdfunding.
+
+### Getting Started
 
 1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/your-username/RaiseFunds.git`
+2. **Clone** your fork locally
 3. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-4. **Make** your changes and test thoroughly
+4. **Make** your changes with tests
 5. **Commit** with clear messages: `git commit -m 'Add amazing feature'`
 6. **Push** to your branch: `git push origin feature/amazing-feature`
-7. **Open** a Pull Request with detailed description
+7. **Open** a Pull Request
 
 ### Development Guidelines
-- Follow TypeScript best practices
-- Write clear, concise commit messages
-- Test wallet connections and API endpoints
-- Ensure responsive design across devices
-- Maintain consistent code style
 
-## License
+- **Code Style**: Follow TypeScript and React best practices
+- **Testing**: Write tests for new features and bug fixes
+- **Documentation**: Update README and API docs for changes
+- **Security**: Follow Web3 security best practices
+- **Accessibility**: Ensure WCAG compliance for all features
+
+### Areas for Contribution
+
+- **Smart Contracts**: Solidity development for onchain functionality
+- **UI/UX**: Design improvements and user experience enhancements
+- **Testing**: Comprehensive test coverage and QA automation
+- **Documentation**: API docs, user guides, and developer resources
+- **Internationalization**: Multi-language support and localization
+
+---
+
+## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## Disclaimer
+---
 
-**RaiseFunds is not a verified charity platform.** Users should independently verify the legitimacy of fundraisers before donating. The platform does not guarantee the use of funds or the validity of causes. Always exercise caution and due diligence when participating in crowdfunding activities.
+## ⚠️ Disclaimer
 
-## Support
+**RaiseFunds is not a verified charity platform.** Users should independently verify the legitimacy of fundraisers before contributing. The platform does not guarantee fund utilization or campaign validity. Exercise caution and conduct due diligence when participating in crowdfunding activities.
 
-- **Issues**: [GitHub Issues](https://github.com/Adrijan-Petek/RaiseFunds/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Adrijan-Petek/RaiseFunds/discussions)
+---
 
-For any errors or bugs, please open an issue on our [GitHub repository](https://github.com/Adrijan-Petek/RaiseFunds/issues).
+## 📞 Support & Community
+
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/Adrijan-Petek/RaiseFunds/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/Adrijan-Petek/RaiseFunds/discussions)
+- **📧 Email**: For security issues, email security@raisefunds.com
+- **🌐 Website**: [raisefunds.com](https://raisefunds.com)
 
 ---
 
 <p align="center">
-  Built with ❤️ for the decentralized future
+  <strong>Built with ❤️ for the decentralized future</strong>
+</p>
+
+<p align="center">
+  <em>Empowering creators, connecting donors, building communities</em>
 </p>
