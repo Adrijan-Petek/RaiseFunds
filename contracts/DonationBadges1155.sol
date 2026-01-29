@@ -38,6 +38,7 @@ error OwnerZero();
 error NotOwner();
 error MinterZero();
 error NotMinter();
+error NotApproved();
 error UriEmpty();
 error UriAlreadySet();
 error ZeroAddress();
@@ -47,6 +48,10 @@ error InsufficientBalance();
 error UnsafeRecipient();
 
 contract DonationBadges1155 {
+    // Optional collection metadata (helps wallets / marketplaces)
+    string public name;
+    string public symbol;
+
     // --- ownership ---
     address public owner;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -75,6 +80,9 @@ contract DonationBadges1155 {
     // operator approvals: owner => (operator => approved)
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    // optional: total supply per id (good for badges + UI)
+    mapping(uint256 => uint256) private _totalSupply;
+
     // --- ERC165 / interface ids ---
     // IERC165: 0x01ffc9a7
     // IERC1155: 0xd9b67a26
@@ -92,11 +100,20 @@ contract DonationBadges1155 {
     event ApprovalForAll(address indexed account, address indexed operator, bool approved);
     event URI(string value, uint256 indexed id);
 
-    constructor(address initialOwner, address initialMinter) {
+    constructor(
+        address initialOwner,
+        address initialMinter,
+        string memory collectionName,
+        string memory collectionSymbol
+    ) {
         if (initialOwner == address(0)) revert OwnerZero();
         if (initialMinter == address(0)) revert MinterZero();
+
         owner = initialOwner;
         minter = initialMinter;
+        name = collectionName;
+        symbol = collectionSymbol;
+
         emit OwnershipTransferred(address(0), initialOwner);
         emit MinterUpdated(address(0), initialMinter);
     }
@@ -127,7 +144,6 @@ contract DonationBadges1155 {
         emit URI(newURI, id);
     }
 
-    /// @notice Optional: allow owner to set many URIs in one tx.
     function setTokenURIBatch(uint256[] calldata ids, string[] calldata uris_) external onlyOwner {
         if (ids.length != uris_.length) revert LengthMismatch();
         for (uint256 i = 0; i < ids.length; i++) {
@@ -139,7 +155,7 @@ contract DonationBadges1155 {
         }
     }
 
-    // --- ERC1155 approvals ---
+    // --- approvals ---
     function setApprovalForAll(address operator, bool approved) external {
         _operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
@@ -149,7 +165,7 @@ contract DonationBadges1155 {
         return _operatorApprovals[account][operator];
     }
 
-    // --- balances ---
+    // --- balances / supply ---
     function balanceOf(address account, uint256 id) external view returns (uint256) {
         if (account == address(0)) revert ZeroAddress();
         return _balances[account][id];
@@ -169,43 +185,63 @@ contract DonationBadges1155 {
         }
     }
 
+    function totalSupply(uint256 id) external view returns (uint256) {
+        return _totalSupply[id];
+    }
+
     // --- transfers ---
     function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external {
-        if (to == address(0)) revert ZeroAddress();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
-        _safeTransfer(from, to, id, amount);
+        if (from == address(0) || to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
+
+        _transferSingle(from, to, id, amount);
+        emit TransferSingle(msg.sender, from, to, id, amount);
+
         _doSafeTransferAcceptanceCheck(msg.sender, from, to, id, amount, data);
     }
 
-    function safeBatchTransferFrom(address from, address to, uint256[] calldata ids, uint256[] calldata amounts, bytes calldata data)
-        external
-    {
-        if (to == address(0)) revert ZeroAddress();
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) external {
+        if (from == address(0) || to == address(0)) revert ZeroAddress();
         if (ids.length != amounts.length) revert LengthMismatch();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
+        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
 
+        // IMPORTANT: batch must NOT emit TransferSingle per id
         for (uint256 i = 0; i < ids.length; i++) {
-            _safeTransfer(from, to, ids[i], amounts[i]);
+            uint256 amt = amounts[i];
+            if (amt == 0) revert ZeroAmount();
+            _transferSingle(from, to, ids[i], amt);
         }
+
         emit TransferBatch(msg.sender, from, to, ids, amounts);
         _doSafeBatchTransferAcceptanceCheck(msg.sender, from, to, ids, amounts, data);
     }
 
-    function _safeTransfer(address from, address to, uint256 id, uint256 amount) internal {
+    function _transferSingle(address from, address to, uint256 id, uint256 amount) internal {
         uint256 fromBal = _balances[from][id];
         if (fromBal < amount) revert InsufficientBalance();
         unchecked {
             _balances[from][id] = fromBal - amount;
             _balances[to][id] += amount;
         }
-        emit TransferSingle(msg.sender, from, to, id, amount);
     }
 
     // --- minting (only minter) ---
     function mint(address to, uint256 id, uint256 amount, bytes calldata data) external onlyMinter {
         if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
-        _balances[to][id] += amount;
+
+        unchecked {
+            _balances[to][id] += amount;
+            _totalSupply[id] += amount;
+        }
+
         emit TransferSingle(msg.sender, address(0), to, id, amount);
         _doSafeTransferAcceptanceCheck(msg.sender, address(0), to, id, amount, data);
     }
@@ -217,33 +253,52 @@ contract DonationBadges1155 {
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 amt = amounts[i];
             if (amt == 0) revert ZeroAmount();
-            _balances[to][ids[i]] += amt;
+            unchecked {
+                _balances[to][ids[i]] += amt;
+                _totalSupply[ids[i]] += amt;
+            }
         }
 
         emit TransferBatch(msg.sender, address(0), to, ids, amounts);
         _doSafeBatchTransferAcceptanceCheck(msg.sender, address(0), to, ids, amounts, data);
     }
 
-    // --- burn (optional, allow holders to burn their badge if they want) ---
+    // --- burn (optional) ---
     function burn(address from, uint256 id, uint256 amount) external {
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
+        if (from == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
+
         uint256 bal = _balances[from][id];
         if (bal < amount) revert InsufficientBalance();
-        unchecked { _balances[from][id] = bal - amount; }
+
+        unchecked {
+            _balances[from][id] = bal - amount;
+            _totalSupply[id] -= amount;
+        }
+
         emit TransferSingle(msg.sender, from, address(0), id, amount);
     }
 
     function burnBatch(address from, uint256[] calldata ids, uint256[] calldata amounts) external {
+        if (from == address(0)) revert ZeroAddress();
         if (ids.length != amounts.length) revert LengthMismatch();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwner();
+        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
             uint256 amt = amounts[i];
+            if (amt == 0) revert ZeroAmount();
+
             uint256 bal = _balances[from][id];
             if (bal < amt) revert InsufficientBalance();
-            unchecked { _balances[from][id] = bal - amt; }
+
+            unchecked {
+                _balances[from][id] = bal - amt;
+                _totalSupply[id] -= amt;
+            }
         }
+
         emit TransferBatch(msg.sender, from, address(0), ids, amounts);
     }
 
