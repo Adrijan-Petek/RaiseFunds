@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^^0.8.25;
+pragma solidity ^0.8.25;
 
 /*
 RaiseFunds (Base-only) Donation System
 =====================================
+
+CONFIRMED CONSTANTS (Base mainnet, chainId 8453)
+- Native USDC (Circle) on Base: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 
 GOALS
 - Accept ETH + native USDC on Base.
@@ -19,11 +22,8 @@ GOALS
 
 IMPORTANT REALITY
 - ETH can be forced into any contract via selfdestruct. This bypasses receive() checks.
-  We include a sweep function so the campaign owner can recover forced ETH after endTime.
+  We include sweep functions so the campaign owner can recover forced ETH / stuck USDC after endTime.
   Your "official donation accounting" should use Forwarder events/counters, NOT vault balances.
-
-NETWORK CONSTANTS
-- Base mainnet USDC (native Circle USDC): 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 */
 
 interface IERC20 {
@@ -94,7 +94,7 @@ abstract contract Ownable {
 /**
  * @notice Per-campaign "wallet" contract.
  * Enforces:
- *  - ETH: only accept from Forwarder and only before endTime, then forwards to campaign owner EOA immediately.
+ *  - ETH: accept only from Forwarder and only before endTime, then forwards to campaign owner EOA immediately.
  *  - USDC: Forwarder transfers USDC in, then calls flushUSDC() to forward immediately to owner EOA.
  */
 contract RecipientVault {
@@ -105,6 +105,9 @@ contract RecipientVault {
     address public immutable campaignOwner;
     uint64  public immutable endTime;
     IERC20  public immutable usdc;
+
+    event SweptETH(address indexed campaignOwner, uint256 amount);
+    event SweptUSDC(address indexed campaignOwner, uint256 amount);
 
     error NotForwarder();
     error Ended();
@@ -143,25 +146,30 @@ contract RecipientVault {
 
     /**
      * @notice Recover forced ETH (e.g., via selfdestruct) after campaign end.
-     * Not part of "official donations". This prevents ETH getting stuck permanently.
      * Callable only by campaign owner.
      */
     function sweepForcedETH() external {
         if (msg.sender != campaignOwner) revert NotCampaignOwner();
         require(block.timestamp >= endTime, "NOT_ENDED");
         uint256 bal = address(this).balance;
-        if (bal > 0) payable(campaignOwner).sendValue(bal);
+        if (bal > 0) {
+            payable(campaignOwner).sendValue(bal);
+            emit SweptETH(campaignOwner, bal);
+        }
     }
 
     /**
      * @notice Recover any USDC that might be stuck after endTime (e.g., someone transferred USDC directly to vault).
-     * Callable only by campaign owner, only after endTime.
+     * Callable only by campaign owner.
      */
     function sweepStuckUSDC() external {
         if (msg.sender != campaignOwner) revert NotCampaignOwner();
         require(block.timestamp >= endTime, "NOT_ENDED");
         uint256 bal = usdc.balanceOf(address(this));
-        if (bal > 0) usdc.safeTransfer(campaignOwner, bal);
+        if (bal > 0) {
+            usdc.safeTransfer(campaignOwner, bal);
+            emit SweptUSDC(campaignOwner, bal);
+        }
     }
 }
 
@@ -176,7 +184,7 @@ contract Forwarder is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // Base mainnet native USDC (Circle)
-    address public constant USDC = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+    address public constant USDC = address(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
 
     struct Campaign {
         address owner;        // campaign creator EOA (receives funds)
@@ -273,12 +281,12 @@ contract Forwarder is Ownable, ReentrancyGuard {
         if (block.timestamp >= c.endTime) revert CampaignEnded();
         if (msg.value == 0) revert NoValue();
 
-        c.raisedETH += msg.value;
-        emit Donated(campaignId, msg.sender, address(0), msg.value);
-
         // Send ETH to vault. Vault enforces onlyForwarder + beforeEnd and forwards to campaign owner.
         (bool ok, ) = c.vault.call{value: msg.value}("");
         require(ok, "ETH_TO_VAULT_FAILED");
+
+        c.raisedETH += msg.value;
+        emit Donated(campaignId, msg.sender, address(0), msg.value);
     }
 
     /// @notice Donate USDC through the official path; transfers USDC -> vault -> owner immediately.
@@ -289,16 +297,21 @@ contract Forwarder is Ownable, ReentrancyGuard {
         if (block.timestamp >= c.endTime) revert CampaignEnded();
         if (amount == 0) revert NoAmount();
 
-        c.raisedUSDC += amount;
-        emit Donated(campaignId, msg.sender, USDC, amount);
-
         // Move USDC into vault, then flush to owner in the same transaction.
         IERC20(USDC).safeTransferFrom(msg.sender, c.vault, amount);
         RecipientVault(c.vault).flushUSDC();
+
+        c.raisedUSDC += amount;
+        emit Donated(campaignId, msg.sender, USDC, amount);
     }
 
     /// @notice Convenience getter returning the whole campaign.
     function getCampaign(uint256 campaignId) external view campaignExists(campaignId) returns (Campaign memory) {
         return campaigns[campaignId];
+    }
+
+    /// @notice Convenience getter for just the vault address.
+    function campaignVault(uint256 campaignId) external view campaignExists(campaignId) returns (address) {
+        return campaigns[campaignId].vault;
     }
 }
