@@ -76,3 +76,61 @@ The contract includes comprehensive error handling and should be thoroughly test
 ### License
 
 MIT
+
+## DonationBadges1155.sol
+
+The `DonationBadges1155.sol` contract is an ERC-1155 token contract that mints donation badges to donors after successful donations. It integrates with the Forwarder contract to provide NFT rewards for contributions.
+
+### Key Features
+
+- **ERC-1155 Standard**: Supports multiple token types and batch operations
+- **Per-Token URIs**: Each token ID (campaign ID) has its own metadata URI
+- **Controlled Minting**: Only authorized minters (backend or minter contract) can mint badges
+- **Burn Functionality**: Holders can burn their badges if desired
+- **IPFS Metadata**: Designed for web3.storage/IPFS hosting of badge metadata
+
+### How It Works
+
+1. **Setup**: Deploy with owner and minter addresses
+2. **Set URIs**: Owner sets token URIs for each campaign (tokenId == campaignId)
+3. **Minting**: After observing a `Donated` event from Forwarder, the minter calls `mint()` to award badges
+4. **Transfers**: Standard ERC-1155 transfers and approvals
+5. **Burning**: Optional burning of badges by holders
+
+### Metadata Example
+
+```json
+{
+  "name": "RaiseFunds Donation Badge #12",
+  "description": "Thanks for donating to campaign #12 on Base.",
+  "image": "ipfs://bafy.../badge.png",
+  "external_url": "https://yourdomain.xyz/campaign/12",
+  "attributes": [
+    { "trait_type": "campaignId", "value": 12 },
+    { "trait_type": "chainId", "value": 8453 },
+    { "trait_type": "platform", "value": "RaiseFunds" }
+  ]
+}
+```
+
+### Deployment
+
+```solidity
+constructor(address initialOwner, address initialMinter)
+```
+
+### Usage Example
+
+```solidity
+// Set URI for campaign 1
+badges.setTokenURI(1, "ipfs://<CID>/badge.json");
+
+// Mint badge to donor
+badges.mint(donorAddress, 1, 1, "");
+```
+
+### Integration with Forwarder
+
+- Listen for `Donated` events from Forwarder
+- Mint badges via backend/minter contract
+- No onchain verification of donation amounts (MVP approach)
