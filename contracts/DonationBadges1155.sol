@@ -48,6 +48,7 @@ error InsufficientBalance();
 error UnsafeRecipient();
 error AlreadyMintedForAccount();
 error Soulbound();
+error MustMintExactlyOne();
 
 contract DonationBadges1155 {
     // Optional collection metadata (helps wallets / marketplaces)
@@ -269,7 +270,7 @@ contract DonationBadges1155 {
         // one-per-wallet rule
         if (onePerWallet[id]) {
             if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
-            if (amount != 1) revert ZeroAmount(); // keep it strict: exactly 1
+            if (amount != 1) revert MustMintExactlyOne();
         }
 
         unchecked {
@@ -292,7 +293,7 @@ contract DonationBadges1155 {
 
             if (onePerWallet[id]) {
                 if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
-                if (amt != 1) revert ZeroAmount();
+                if (amt != 1) revert MustMintExactlyOne();
             }
 
             unchecked {
