@@ -19,6 +19,9 @@ error AlreadyPaused();
 error NotPaused();
 error EndTimeNotExtended();
 
+error CannotRenounceWhilePaused();
+error CannotRenounceWithPendingPause();
+
 interface IERC20 {
     function balanceOf(address a) external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
@@ -82,13 +85,6 @@ abstract contract Ownable {
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
-
-    // Optional: I recommend NOT including renounceOwnership for protocol contracts.
-    // If you keep it, understand you lose pause/unpause forever.
-    function renounceOwnership() external onlyOwner {
-        emit OwnershipTransferred(owner, address(0));
-        owner = address(0);
-    }
 }
 
 /**
@@ -96,7 +92,7 @@ abstract contract Ownable {
  * - ETH: only from Forwarder, forwarded immediately
  * - USDC: transferred in by Forwarder, flushed immediately
  * - Rejects after endTime
- * - endTime can be extended by Forwarder only (for extendCampaign feature)
+ * - endTime can be extended by Forwarder only
  */
 contract RecipientVault {
     using SafeERC20 for IERC20;
@@ -178,8 +174,6 @@ contract Forwarder is Ownable, ReentrancyGuard {
     address public constant USDC = address(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
 
     uint64 public constant MAX_DURATION = 365 days;
-
-    // Pause timelock
     uint256 public constant PAUSE_DELAY = 1 days;
 
     struct Campaign {
@@ -251,6 +245,7 @@ contract Forwarder is Ownable, ReentrancyGuard {
     function pause() external onlyOwner {
         if (paused) revert AlreadyPaused();
         if (pauseRequestedAt == 0) revert PauseNotRequested();
+
         uint256 readyAt = pauseRequestedAt + PAUSE_DELAY;
         if (block.timestamp < readyAt) revert PauseDelayNotPassed(readyAt);
 
@@ -264,6 +259,14 @@ contract Forwarder is Ownable, ReentrancyGuard {
         paused = false;
         emit PausedSet(false);
         pauseRequestedAt = 0;
+    }
+
+    // --- SAFE renounce ownership ---
+    function renounceOwnership() external onlyOwner {
+        if (paused) revert CannotRenounceWhilePaused();
+        if (pauseRequestedAt != 0) revert CannotRenounceWithPendingPause();
+        emit OwnershipTransferred(owner, address(0));
+        owner = address(0);
     }
 
     // --- convenience getters ---
