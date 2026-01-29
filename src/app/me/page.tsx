@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { Header } from '@/components/Header'
 
 interface Fundraiser {
   id: string
@@ -145,7 +146,8 @@ export default function MePage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-        {/* Header */}
+        <Header />
+
         <div className="mb-6 flex items-center justify-between gap-4">
           <Link
             href="/"

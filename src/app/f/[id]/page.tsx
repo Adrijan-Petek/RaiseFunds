@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { Header } from '@/components/Header'
 
 interface Fundraiser {
   id: string
@@ -72,21 +73,30 @@ export default function FundraiserPage() {
   // Temporarily disable share URL to avoid Turbopack regex parsing issues
   // const shareUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(`${fundraiser?.title} - Help support this cause! ${window.location.href}`)}`
 
-  if (!fundraiser) return <div className="container mx-auto p-4">Loading...</div>
+  if (!fundraiser) return <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        <Header />
+        <div className="container mx-auto p-4">Loading...</div>
+      </div>
+    </div>
 
   const progress = (fundraiser.totalRaisedCached / fundraiser.goalAmount) * 100
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold">{fundraiser.title}</h1>
-        {fundraiser.coverImageUrl && <img src={fundraiser.coverImageUrl} alt={fundraiser.title} className="w-full h-64 object-cover my-4" />}
-        <p className="text-lg">{fundraiser.description}</p>
-        <p>Category: {fundraiser.category}</p>
-        <div className="my-4">
-          <div className="bg-gray-200 rounded-full h-4">
-            <div className="bg-green-500 h-4 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
-          </div>
-          <p>Raised: {fundraiser.totalRaisedCached} / {fundraiser.goalAmount} ETH</p>
+    <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        <Header />
+
+        <div className="container mx-auto p-4">
+          <h1 className="text-3xl font-bold">{fundraiser.title}</h1>
+            {fundraiser.coverImageUrl && <img src={fundraiser.coverImageUrl} alt={fundraiser.title} className="w-full h-64 object-cover my-4" />}
+            <p className="text-lg">{fundraiser.description}</p>
+            <p>Category: {fundraiser.category}</p>
+            <div className="my-4">
+              <div className="bg-gray-200 rounded-full h-4">
+                <div className="bg-green-500 h-4 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+              </div>
+              <p>Raised: {fundraiser.totalRaisedCached} / {fundraiser.goalAmount} ETH</p>
         </div>
         <div className="my-4">
           <input
@@ -141,6 +151,8 @@ export default function FundraiserPage() {
             </li>
           ))}
         </ul>
+        </div>
+      </div>
     </div>
   )
 }

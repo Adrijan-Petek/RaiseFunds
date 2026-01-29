@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Header } from '@/components/Header'
 
 export default function NewFundraiser() {
   const [form, setForm] = useState({
@@ -56,8 +57,9 @@ export default function NewFundraiser() {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
-      <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
-        {/* Header */}
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        <Header />
+
         <div className="mb-6 flex items-center justify-between gap-4">
           <Link
             href="/"
