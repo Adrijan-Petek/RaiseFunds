@@ -283,7 +283,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - **Issues**: [GitHub Issues](https://github.com/Adrijan-Petek/RaiseFunds/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Adrijan-Petek/RaiseFunds/discussions)
-- **Email**: [contact@raisefunds.app](mailto:contact@raisefunds.app)
+
+For any errors or bugs, please open an issue on our [GitHub repository](https://github.com/Adrijan-Petek/RaiseFunds/issues).
 
 ---
 
