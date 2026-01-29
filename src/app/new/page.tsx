@@ -17,7 +17,62 @@ export default function NewFundraiser() {
     creatorUsername: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string>('')
   const router = useRouter()
+
+  const categories = [
+    'Medical',
+    'Education',
+    'Community',
+    'Open source',
+    'Environment',
+    'Arts & Culture',
+    'Sports',
+    'Technology',
+    'Other'
+  ]
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setForm({ ...form, coverImageUrl: data.url })
+        setPreviewImage(data.url)
+      } else {
+        alert('Failed to upload image. Please try again.')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload image. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Preview the image
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreviewImage(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+
+      // Upload to Cloudinary
+      handleImageUpload(file)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,18 +247,60 @@ export default function NewFundraiser() {
                 </p>
               </div>
 
-              {/* Cover Image URL */}
+              {/* Cover Image */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-2">
-                  Cover Image URL <span className="text-[rgb(var(--muted))]">(optional)</span>
+                  Cover Image <span className="text-[rgb(var(--muted))]">(optional)</span>
                 </label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={form.coverImageUrl}
-                  onChange={e => setForm({ ...form, coverImageUrl: e.target.value })}
-                  className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-3 text-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none"
-                />
+                <div className="space-y-4">
+                  {/* Image Preview */}
+                  {previewImage && (
+                    <div className="relative">
+                      <img
+                        src={previewImage}
+                        alt="Cover preview"
+                        className="w-full h-48 object-cover rounded-xl border border-[rgb(var(--border))]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewImage('')
+                          setForm({ ...form, coverImageUrl: '' })
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+
+                  {/* File Input */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={isUploading}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="w-full rounded-xl border-2 border-dashed border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-8 text-center hover:border-[rgb(var(--accent))] transition-colors">
+                      {isUploading ? (
+                        <div className="text-sm text-[rgb(var(--muted))]">
+                          Uploading image...
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-sm font-medium mb-1">
+                            Click to upload cover image
+                          </div>
+                          <div className="text-xs text-[rgb(var(--muted))]">
+                            PNG, JPG, GIF up to 10MB
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <p className="mt-1 text-xs text-[rgb(var(--muted))]">
                   Add a compelling image to make your fundraiser stand out
                 </p>
@@ -230,10 +327,10 @@ export default function NewFundraiser() {
             <div className="pt-4 border-t border-[rgb(var(--border))]">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 className="w-full md:w-auto px-8 py-3 bg-[rgb(var(--accent))] text-white font-medium rounded-xl hover:opacity-90 focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Creating...' : 'Create Fundraiser'}
+                {isSubmitting ? 'Creating...' : isUploading ? 'Uploading...' : 'Create Fundraiser'}
               </button>
               <p className="mt-2 text-xs text-[rgb(var(--muted))]">
                 By creating a fundraiser, you agree to our terms of service and will be responsible for managing donations appropriately.
