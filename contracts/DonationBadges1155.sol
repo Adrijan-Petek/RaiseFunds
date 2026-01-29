@@ -46,9 +46,10 @@ error ZeroAmount();
 error LengthMismatch();
 error InsufficientBalance();
 error UnsafeRecipient();
-error AlreadyMintedForAccount();
+error MaxOnePerWallet();
 error Soulbound();
 error MustMintExactlyOne();
+error UriNotSet();
 
 contract DonationBadges1155 {
     // Optional collection metadata (helps wallets / marketplaces)
@@ -180,6 +181,7 @@ contract DonationBadges1155 {
 
     // --- approvals ---
     function setApprovalForAll(address operator, bool approved) external {
+        if (soulbound && approved) revert Soulbound();
         _operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
     }
@@ -212,6 +214,11 @@ contract DonationBadges1155 {
         return _totalSupply[id];
     }
 
+    function totalSupplyBatch(uint256[] calldata ids) external view returns (uint256[] memory out) {
+        out = new uint256[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) out[i] = _totalSupply[ids[i]];
+    }
+
     // --- transfers ---
     function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external {
         if (soulbound) revert Soulbound();
@@ -220,7 +227,7 @@ contract DonationBadges1155 {
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
 
         // one-per-wallet rule: receiver must not end up with >1
-        if (onePerWallet[id] && _balances[to][id] + amount > 1) revert AlreadyMintedForAccount();
+        if (onePerWallet[id] && _balances[to][id] + amount > 1) revert MaxOnePerWallet();
 
         _transferSingle(from, to, id, amount);
         emit TransferSingle(msg.sender, from, to, id, amount);
@@ -245,7 +252,7 @@ contract DonationBadges1155 {
             uint256 amt = amounts[i];
             if (amt == 0) revert ZeroAmount();
 
-            if (onePerWallet[ids[i]] && _balances[to][ids[i]] + amt > 1) revert AlreadyMintedForAccount();
+            if (onePerWallet[ids[i]] && _balances[to][ids[i]] + amt > 1) revert MaxOnePerWallet();
             _transferSingle(from, to, ids[i], amt);
         }
 
@@ -264,12 +271,13 @@ contract DonationBadges1155 {
 
     // --- minting (only minter) ---
     function mint(address to, uint256 id, uint256 amount, bytes calldata data) external onlyMinter {
+        if (bytes(_tokenURIs[id]).length == 0) revert UriNotSet();
         if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
 
         // one-per-wallet rule
         if (onePerWallet[id]) {
-            if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
+            if (_balances[to][id] != 0) revert MaxOnePerWallet();
             if (amount != 1) revert MustMintExactlyOne();
         }
 
@@ -288,11 +296,12 @@ contract DonationBadges1155 {
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
+            if (bytes(_tokenURIs[id]).length == 0) revert UriNotSet();
             uint256 amt = amounts[i];
             if (amt == 0) revert ZeroAmount();
 
             if (onePerWallet[id]) {
-                if (_balances[to][id] != 0) revert AlreadyMintedForAccount();
+                if (_balances[to][id] != 0) revert MaxOnePerWallet();
                 if (amt != 1) revert MustMintExactlyOne();
             }
 
