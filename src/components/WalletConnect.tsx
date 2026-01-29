@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
 import { SignInButton, useProfile } from '@farcaster/auth-kit'
 import { EthereumProvider } from '@walletconnect/ethereum-provider'
@@ -22,6 +22,8 @@ function IconBadge({ src, alt }: { src: string; alt: string }) {
 
 export function WalletConnect() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
   const [wcLoading, setWcLoading] = useState(false)
   const [wcError, setWcError] = useState('')
   const [wcConnected, setWcConnected] = useState(false)
@@ -47,7 +49,7 @@ export function WalletConnect() {
     let cancelled = false
     setBaseName(null)
 
-    if (!web3Address) return
+    if (!web3Address || ensName) return
 
     const fetchBaseName = async () => {
       try {
@@ -58,7 +60,6 @@ export function WalletConnect() {
         if (!cancelled) setBaseName(name ?? null)
       } catch (error) {
         if (!cancelled) setBaseName(null)
-        console.error('Basename lookup error:', error)
       }
     }
 
@@ -67,13 +68,15 @@ export function WalletConnect() {
     return () => {
       cancelled = true
     }
-  }, [web3Address])
+  }, [ensName, web3Address])
 
   const openModal = () => setIsModalOpen(true)
+  const closeMenu = () => setIsMenuOpen(false)
   const closeModal = () => {
     setIsModalOpen(false)
     setWcError('')
   }
+  const anyConnected = web3Connected || farcasterSignedIn || wcConnected
 
   const buttonLabel = useMemo(() => {
     if (web3Connected && web3Address) {
@@ -114,6 +117,26 @@ export function WalletConnect() {
       document.body.style.overflow = originalOverflow
     }
   }, [isModalOpen])
+
+  useEffect(() => {
+    if (!isMenuOpen) return
+
+    const onClickOutside = (event: MouseEvent) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(event.target as Node)) {
+        closeMenu()
+      }
+    }
+
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [isMenuOpen])
+
+  useEffect(() => {
+    if (!anyConnected && isMenuOpen) {
+      closeMenu()
+    }
+  }, [anyConnected, isMenuOpen])
 
   const handleWalletConnect = useCallback(async () => {
     setWcLoading(true)
@@ -223,16 +246,296 @@ export function WalletConnect() {
     [connectors],
   )
 
+  const panel = (showConnectOptions: boolean) => (
+    <div className="w-full max-w-sm overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-1.5 border-b border-[rgb(var(--border))]">
+        <h2 id="wallet-modal-title" className="text-lg font-semibold leading-6 text-[rgb(var(--fg))]">
+          Connect Wallet
+        </h2>
+        <button
+          onClick={showConnectOptions ? closeModal : closeMenu}
+          className="rounded-full p-2 text-[rgb(var(--muted))] hover:bg-[rgb(var(--bg))] hover:text-[rgb(var(--fg))] transition-all duration-200"
+          aria-label="Close modal"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="px-4 py-2">
+        {/* Connected State */}
+        {web3Connected && web3Address && (
+          <div className="mb-3 rounded-2xl border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="text-sm font-medium text-green-800 dark:text-green-200">Connected</div>
+                </div>
+                <div className="mt-1 truncate font-mono text-xs text-[rgb(var(--muted))]">
+                  {web3Address.slice(0, 6)}...{web3Address.slice(-4)}
+                </div>
+              </div>
+              <button
+                onClick={() => disconnect()}
+                className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showConnectOptions ? (
+          <div className="space-y-2">
+                <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide mt-3">Popular Wallets</div>
+
+            {/* MetaMask */}
+            <button
+              onClick={() => metaMaskConnector && connect({ connector: metaMaskConnector })}
+              disabled={!metaMaskConnector || isPending}
+              className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+            >
+              <div className="flex items-center gap-3">
+                <IconBadge src="/icons/wallets/metamask.svg" alt="MetaMask" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-5">MetaMask</div>
+                  <div className="text-xs text-[rgb(var(--muted))]">Browser extension</div>
+                </div>
+                <div className="flex items-center justify-center h-8 w-20 text-sm font-medium text-[rgb(var(--accent))]">
+                  {isPending ? (
+                    <div className="flex items-center gap-2">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Connecting…
+                    </div>
+                  ) : (
+                    'Connect'
+                  )}
+                </div>
+              </div>
+            </button>
+
+            {/* Rainbow */}
+            <button
+              onClick={() => rainbowConnector && connect({ connector: rainbowConnector })}
+              disabled={!rainbowConnector || isPending}
+              className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+            >
+              <div className="flex items-center gap-3">
+                <IconBadge src="/icons/wallets/rainbow.svg" alt="Rainbow" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-5">Rainbow</div>
+                  <div className="text-xs text-[rgb(var(--muted))]">Mobile wallet</div>
+                </div>
+                <div className="flex items-center justify-center h-8 w-20 text-sm font-medium text-[rgb(var(--accent))]">
+                  {isPending ? (
+                    <div className="flex items-center gap-2">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Connecting…
+                    </div>
+                  ) : (
+                    'Connect'
+                  )}
+                </div>
+              </div>
+            </button>
+
+            {/* Base (Coinbase L2) */}
+            <button
+              onClick={() => coinbaseConnector && connect({ connector: coinbaseConnector })}
+              disabled={!coinbaseConnector || isPending}
+              className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
+            >
+              <div className="flex items-center gap-3">
+                <IconBadge src="/icons/wallets/base.svg" alt="Base" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-5">Base</div>
+                  <div className="text-xs text-[rgb(var(--muted))]">Mobile & browser</div>
+                </div>
+                <div className="flex items-center justify-center h-8 w-20 text-sm font-medium text-[rgb(var(--accent))]">
+                  {isPending ? (
+                    <div className="flex items-center gap-2">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Connecting…
+                    </div>
+                  ) : (
+                    'Connect'
+                  )}
+                </div>
+              </div>
+            </button>
+
+            <div className="my-3 h-px w-full bg-[rgb(var(--border))]" />
+
+            <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide">Other Options</div>
+
+            {/* Farcaster */}
+            <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
+              <div className="flex items-center gap-3">
+                <IconBadge src="/icons/wallets/farcaster.svg" alt="Farcaster" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-5">Farcaster</div>
+                  <div className="text-xs text-[rgb(var(--muted))]">
+                    {farcasterSignedIn && farcasterLabel ? farcasterLabel : 'Social login'}
+                  </div>
+                </div>
+
+                {farcasterSignedIn ? (
+                  <button
+                    onClick={handleFarcasterSignOut}
+                    className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-center h-8 w-20 [&_button]:bg-transparent [&_button]:border-0 [&_button]:p-0 [&_button]:m-0 [&_button]:text-sm [&_button]:font-medium [&_button]:text-[rgb(var(--accent))] [&_button]:hover:underline [&_button_svg]:hidden">
+                    <SignInButton />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* WalletConnect */}
+            <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
+              <div className="flex items-center gap-3">
+                <IconBadge src="/icons/wallets/walletconnect.svg" alt="WalletConnect" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-5">WalletConnect</div>
+                  <div className="text-xs text-[rgb(var(--muted))]">
+                    {wcError ? (
+                      <span className="text-red-600 font-medium">{wcError}</span>
+                    ) : wcConnected ? (
+                      'Connected via QR code'
+                    ) : (
+                      'Scan with mobile wallet'
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={wcConnected ? handleWalletDisconnect : handleWalletConnect}
+                  disabled={wcLoading}
+                  className="flex items-center justify-center h-8 w-20 shrink-0 rounded-xl px-3 text-sm font-medium hover:bg-[rgb(var(--bg))] disabled:opacity-50 transition-colors"
+                >
+                  {wcLoading ? (
+                    <div className="flex items-center gap-2">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {wcConnected ? 'Disconnecting…' : 'Connecting…'}
+                    </div>
+                  ) : (
+                    <div className="text-sm font-medium text-[rgb(var(--accent))]">
+                      {wcConnected ? 'Disconnect' : 'Connect'}
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {farcasterSignedIn && (
+              <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
+                <div className="flex items-center gap-3">
+                  <IconBadge src="/icons/wallets/farcaster.svg" alt="Farcaster" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold leading-5">Farcaster</div>
+                    <div className="text-xs text-[rgb(var(--muted))]">{farcasterLabel}</div>
+                  </div>
+                  <button
+                    onClick={handleFarcasterSignOut}
+                    className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {wcConnected && (
+              <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
+                <div className="flex items-center gap-3">
+                  <IconBadge src="/icons/wallets/walletconnect.svg" alt="WalletConnect" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold leading-5">WalletConnect</div>
+                    <div className="text-xs text-[rgb(var(--muted))]">Connected</div>
+                  </div>
+
+                  <button
+                    onClick={handleWalletDisconnect}
+                    disabled={wcLoading}
+                    className="flex items-center justify-center h-8 w-20 shrink-0 rounded-xl px-3 text-sm font-medium hover:bg-[rgb(var(--bg))] disabled:opacity-50 transition-colors"
+                  >
+                    <div className="text-sm font-medium text-[rgb(var(--accent))]">Disconnect</div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      {showConnectOptions && (
+        <div className="border-t border-[rgb(var(--border))] px-4 py-1.5">
+          <p className="text-center text-xs leading-5 text-[rgb(var(--muted))]">
+            By connecting, you agree to our{' '}
+            <a href="#" className="text-[rgb(var(--accent))] hover:underline">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="#" className="text-[rgb(var(--accent))] hover:underline">
+              Privacy Policy
+            </a>
+            . Your keys stay secure.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+
   return (
-    <>
+    <div className="relative" ref={menuRef}>
       <button
-        onClick={openModal}
+        onClick={() => {
+          if (anyConnected) {
+            setIsMenuOpen((prev) => !prev)
+            return
+          }
+          openModal()
+        }}
         className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-4 py-2.5 text-sm font-medium hover:bg-[rgb(var(--bg))] transition-colors shadow-sm hover:shadow"
+        aria-expanded={isModalOpen || isMenuOpen}
+        aria-haspopup="menu"
       >
         {buttonLabel}
       </button>
 
-      {isModalOpen && (
+      {isMenuOpen && anyConnected && (
+        <div
+          className="absolute right-0 z-50 mt-2 w-[360px] max-w-[90vw]"
+          role="menu"
+          aria-labelledby="wallet-modal-title"
+        >
+          {panel(false)}
+        </div>
+      )}
+
+      {isModalOpen && !anyConnected && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
@@ -240,226 +543,9 @@ export function WalletConnect() {
           role="dialog"
           aria-labelledby="wallet-modal-title"
         >
-          <div className="w-full max-w-sm overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-1.5 border-b border-[rgb(var(--border))]">
-              <h2 id="wallet-modal-title" className="text-lg font-semibold leading-6 text-[rgb(var(--fg))]">
-                Connect Wallet
-              </h2>
-              <button
-                onClick={closeModal}
-                className="rounded-full p-2 text-[rgb(var(--muted))] hover:bg-[rgb(var(--bg))] hover:text-[rgb(var(--fg))] transition-all duration-200"
-                aria-label="Close modal"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="px-4 py-2">
-              {/* Connected State */}
-              {web3Connected && web3Address ? (
-                <div className="mb-3 rounded-2xl border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <div className="text-sm font-medium text-green-800 dark:text-green-200">Connected</div>
-                      </div>
-                      <div className="mt-1 truncate font-mono text-xs text-[rgb(var(--muted))]">
-                        {activeConnector?.name ? `${activeConnector.name} • ` : ''}
-                        {web3Address.slice(0, 6)}...{web3Address.slice(-4)}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => disconnect()}
-                      className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide mt-3">Popular Wallets</div>
-
-                  {/* MetaMask */}
-                  <button
-                    onClick={() => metaMaskConnector && connect({ connector: metaMaskConnector })}
-                    disabled={!metaMaskConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <IconBadge src="/icons/wallets/metamask.svg" alt="MetaMask" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold leading-5">MetaMask</div>
-                        <div className="text-xs text-[rgb(var(--muted))]">Browser extension</div>
-                      </div>
-                      <div className="text-sm font-medium text-[rgb(var(--accent))]">
-                        {isPending ? (
-                          <div className="flex items-center gap-2">
-                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Connecting…
-                          </div>
-                        ) : (
-                          'Connect'
-                        )}
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Rainbow */}
-                  <button
-                    onClick={() => rainbowConnector && connect({ connector: rainbowConnector })}
-                    disabled={!rainbowConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <IconBadge src="/icons/wallets/rainbow.svg" alt="Rainbow" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold leading-5">Rainbow</div>
-                        <div className="text-sm text-[rgb(var(--muted))]">Mobile wallet</div>
-                      </div>
-                      <div className="text-sm font-medium text-[rgb(var(--accent))]">
-                        {isPending ? (
-                          <div className="flex items-center gap-2">
-                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Connecting…
-                          </div>
-                        ) : (
-                          'Connect'
-                        )}
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Base (Coinbase L2) */}
-                  <button
-                    onClick={() => coinbaseConnector && connect({ connector: coinbaseConnector })}
-                    disabled={!coinbaseConnector || isPending}
-                    className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <IconBadge src="/icons/wallets/base.svg" alt="Base" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold leading-5">Base</div>
-                        <div className="text-xs text-[rgb(var(--muted))]">Mobile & browser</div>
-                      </div>
-                      <div className="text-sm font-medium text-[rgb(var(--accent))]">
-                        {isPending ? (
-                          <div className="flex items-center gap-2">
-                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Connecting…
-                          </div>
-                        ) : (
-                          'Connect'
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
-
-              <div className="my-4 h-px w-full bg-[rgb(var(--border))]" />
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-[rgb(var(--muted))] uppercase tracking-wide">Other Options</div>
-
-                {/* Farcaster */}
-                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <IconBadge src="/icons/wallets/farcaster.svg" alt="Farcaster" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold leading-5">Farcaster</div>
-                      <div className="text-xs text-[rgb(var(--muted))]">
-                        {farcasterSignedIn && farcasterLabel ? farcasterLabel : 'Social login'}
-                      </div>
-                    </div>
-
-                    {farcasterSignedIn ? (
-                      <button
-                        onClick={handleFarcasterSignOut}
-                        className="shrink-0 rounded-xl border border-red-200 bg-white dark:bg-[rgb(var(--card))] px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                      >
-                        Sign out
-                      </button>
-                    ) : (
-                      <div className="[&_button]:rounded-xl [&_button]:px-3 [&_button]:py-2 [&_button]:text-sm [&_button]:font-medium [&_button]:text-[rgb(var(--accent))] [&_button]:hover:bg-[rgb(var(--bg))] [&_button]:transition-colors [&_button_svg]:hidden">
-                        <SignInButton />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* WalletConnect */}
-                <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <IconBadge src="/icons/wallets/walletconnect.png" alt="WalletConnect" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold leading-5">WalletConnect</div>
-                      <div className="text-sm text-[rgb(var(--muted))]">
-                        {wcError ? (
-                          <span className="text-red-600 font-medium">{wcError}</span>
-                        ) : wcConnected ? (
-                          'Connected via QR code'
-                        ) : (
-                          'Scan with mobile wallet'
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={wcConnected ? handleWalletDisconnect : handleWalletConnect}
-                      disabled={wcLoading}
-                      className="shrink-0 rounded-xl px-3 py-2 text-sm font-medium hover:bg-[rgb(var(--bg))] disabled:opacity-50 transition-colors"
-                    >
-                      {wcLoading ? (
-                        <div className="flex items-center gap-2">
-                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          {wcConnected ? 'Disconnecting…' : 'Connecting…'}
-                        </div>
-                      ) : (
-                        <div className="text-sm font-medium text-[rgb(var(--accent))]">
-                          {wcConnected ? 'Disconnect' : 'Connect'}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="border-t border-[rgb(var(--border))] px-4 py-1.5">
-              <p className="text-center text-xs leading-5 text-[rgb(var(--muted))]">
-                By connecting, you agree to our{' '}
-                <a href="#" className="text-[rgb(var(--accent))] hover:underline">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-[rgb(var(--accent))] hover:underline">
-                  Privacy Policy
-                </a>
-                . Your keys stay secure.
-              </p>
-            </div>
-          </div>
+          {panel(true)}
         </div>
       )}
-    </>
+    </div>
   )
 }

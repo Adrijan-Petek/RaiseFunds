@@ -7,16 +7,13 @@ import { ThemeToggle } from './ThemeToggle'
 export function Header() {
   return (
     <header className="mb-6 flex items-start justify-between gap-4">
-      {/* LEFT: Logo with tagline underneath */}
+      {/* LEFT: Logo */}
       <div className="flex flex-col items-start gap-2">
         <img
           src="/logo/logo1.png"
           alt="RaiseFunds"
           className="h-30 w-60"
         />
-        <div className="text-sm text-[rgb(var(--muted))]">
-          Fund causes you care about.
-        </div>
       </div>
 
       {/* RIGHT: Actions */}

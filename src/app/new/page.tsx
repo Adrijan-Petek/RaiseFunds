@@ -58,11 +58,13 @@ export default function NewFundraiser() {
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
       <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-            <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
-          </div>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            ← Back to home
+          </Link>
 
           <div className="flex items-center gap-2">
             <Link
@@ -70,12 +72,6 @@ export default function NewFundraiser() {
               className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 py-2 text-sm hover:opacity-90"
             >
               My dashboard
-            </Link>
-            <Link
-              href="/"
-              className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-            >
-              ← Back to home
             </Link>
           </div>
         </div>

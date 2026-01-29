@@ -77,11 +77,7 @@ export default function MePage() {
       <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
         <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between gap-4">
-            <div>
-              <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-              <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
-            </div>
+          <div className="mb-6 flex items-center justify-between gap-4">
             <Link
               href="/"
               className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
@@ -110,11 +106,13 @@ export default function MePage() {
       <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
         <div className="mx-auto max-w-4xl px-4 py-6 md:px-6">
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between gap-4">
-            <div>
-              <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-              <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
-            </div>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <Link
+              href="/"
+              className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+            >
+              ← Back to home
+            </Link>
             <div className="flex items-center gap-2">
               <span className="text-sm text-[rgb(var(--muted))]">Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
               <button
@@ -123,12 +121,6 @@ export default function MePage() {
               >
                 Disconnect
               </button>
-              <Link
-                href="/"
-                className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-              >
-                ← Back to home
-              </Link>
             </div>
           </div>
 
@@ -154,11 +146,13 @@ export default function MePage() {
     <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--fg))]">
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xl font-semibold tracking-tight">RaiseFunds</div>
-            <div className="text-sm text-[rgb(var(--muted))]">Fund causes you care about.</div>
-          </div>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="rounded-xl bg-[rgb(var(--accent))] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            ← Back to home
+          </Link>
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-[rgb(var(--muted))]">Creator: {address?.slice(0, 6)}...{address?.slice(-4)}</span>
