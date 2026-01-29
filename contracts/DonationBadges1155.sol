@@ -56,6 +56,9 @@ contract DonationBadges1155 {
     string public name;
     string public symbol;
 
+    // Permanent: badges are soulbound (non-transferable)
+    bool public constant soulbound = true;
+
     // --- ownership ---
     address public owner;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -91,9 +94,6 @@ contract DonationBadges1155 {
     // If true: each wallet can hold max 1 for tokenId (campaignId)
     mapping(uint256 => bool) public onePerWallet;
 
-    // Permanent: badges are soulbound (non-transferable)
-    bool public soulbound;
-
     // --- ERC165 / interface ids ---
     // IERC165: 0x01ffc9a7
     // IERC1155: 0xd9b67a26
@@ -112,7 +112,6 @@ contract DonationBadges1155 {
     event URI(string value, uint256 indexed id);
 
     event OnePerWalletSet(uint256 indexed id, bool enabled);
-    event SoulboundSet(bool enabled);
 
     constructor(
         address initialOwner,
@@ -127,10 +126,6 @@ contract DonationBadges1155 {
         minter = initialMinter;
         name = collectionName;
         symbol = collectionSymbol;
-
-        // ✅ Soulbound by default
-        soulbound = true;
-        emit SoulboundSet(true);
 
         emit OwnershipTransferred(address(0), initialOwner);
         emit MinterUpdated(address(0), initialMinter);
@@ -180,9 +175,10 @@ contract DonationBadges1155 {
 
     // --- approvals ---
     function setApprovalForAll(address operator, bool approved) external {
-        if (soulbound && approved) revert Soulbound();
-        _operatorApprovals[msg.sender][operator] = approved;
-        emit ApprovalForAll(msg.sender, operator, approved);
+        // approvals are meaningless for soulbound, and would enable 3rd-party transfers if transfers existed.
+        if (approved) revert Soulbound();
+        _operatorApprovals[msg.sender][operator] = false;
+        emit ApprovalForAll(msg.sender, operator, false);
     }
 
     function isApprovedForAll(address account, address operator) public view returns (bool) {
@@ -218,45 +214,13 @@ contract DonationBadges1155 {
         for (uint256 i = 0; i < ids.length; i++) out[i] = _totalSupply[ids[i]];
     }
 
-    // --- transfers ---
-    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external {
-        if (soulbound) revert Soulbound();
-        if (from == address(0) || to == address(0)) revert ZeroAddress();
-        if (amount == 0) revert ZeroAmount();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
-
-        // one-per-wallet rule: receiver must not end up with >1
-        if (onePerWallet[id] && _balances[to][id] + amount > 1) revert MaxOnePerWallet();
-
-        _transferSingle(from, to, id, amount);
-        emit TransferSingle(msg.sender, from, to, id, amount);
-
-        _doSafeTransferAcceptanceCheck(msg.sender, from, to, id, amount, data);
+    // --- transfers (blocked permanently) ---
+    function safeTransferFrom(address, address, uint256, uint256, bytes calldata) external pure {
+        revert Soulbound();
     }
 
-    function safeBatchTransferFrom(
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts,
-        bytes calldata data
-    ) external {
-        if (soulbound) revert Soulbound();
-        if (from == address(0) || to == address(0)) revert ZeroAddress();
-        if (ids.length != amounts.length) revert LengthMismatch();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
-
-        // IMPORTANT: batch must NOT emit TransferSingle per id
-        for (uint256 i = 0; i < ids.length; i++) {
-            uint256 amt = amounts[i];
-            if (amt == 0) revert ZeroAmount();
-
-            if (onePerWallet[ids[i]] && _balances[to][ids[i]] + amt > 1) revert MaxOnePerWallet();
-            _transferSingle(from, to, ids[i], amt);
-        }
-
-        emit TransferBatch(msg.sender, from, to, ids, amounts);
-        _doSafeBatchTransferAcceptanceCheck(msg.sender, from, to, ids, amounts, data);
+    function safeBatchTransferFrom(address, address, uint256[] calldata, uint256[] calldata, bytes calldata) external pure {
+        revert Soulbound();
     }
 
     function _transferSingle(address from, address to, uint256 id, uint256 amount) internal {
@@ -318,7 +282,7 @@ contract DonationBadges1155 {
     function burn(address from, uint256 id, uint256 amount) external {
         if (from == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
+        if (from != msg.sender) revert NotApproved(); // no approvals in soulbound mode
 
         uint256 bal = _balances[from][id];
         if (bal < amount) revert InsufficientBalance();
@@ -334,7 +298,7 @@ contract DonationBadges1155 {
     function burnBatch(address from, uint256[] calldata ids, uint256[] calldata amounts) external {
         if (from == address(0)) revert ZeroAddress();
         if (ids.length != amounts.length) revert LengthMismatch();
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotApproved();
+        if (from != msg.sender) revert NotApproved();
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
