@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Header } from '@/components/Header'
+import { useAccount } from 'wagmi'
 
 export default function NewFundraiser() {
   const [form, setForm] = useState({
     title: '',
     description: '',
     goalAmount: '',
+    currency: 'ETH' as 'ETH' | 'USDC',
     beneficiaryAddress: '',
     coverImageUrl: '',
     category: '',
@@ -20,18 +22,14 @@ export default function NewFundraiser() {
   const [isUploading, setIsUploading] = useState(false)
   const [previewImage, setPreviewImage] = useState<string>('')
   const router = useRouter()
+  const { address, isConnected } = useAccount()
 
-  const categories = [
-    'Medical',
-    'Education',
-    'Community',
-    'Open source',
-    'Environment',
-    'Arts & Culture',
-    'Sports',
-    'Technology',
-    'Other'
-  ]
+  // Auto-populate beneficiary address with connected wallet
+  useEffect(() => {
+    if (address && !form.beneficiaryAddress) {
+      setForm(prev => ({ ...prev, beneficiaryAddress: address }))
+    }
+  }, [address, form.beneficiaryAddress])
 
   const handleImageUpload = async (file: File) => {
     setIsUploading(true)
@@ -176,16 +174,47 @@ export default function NewFundraiser() {
                 />
               </div>
 
+              {/* Currency Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Currency <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, currency: 'ETH' })}
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-xl border transition-colors ${
+                      form.currency === 'ETH'
+                        ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                        : 'border-[rgb(var(--border))] bg-[rgb(var(--bg))] text-[rgb(var(--fg))] hover:border-[rgb(var(--accent))]'
+                    }`}
+                  >
+                    ETH
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, currency: 'USDC' })}
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-xl border transition-colors ${
+                      form.currency === 'USDC'
+                        ? 'border-[rgb(var(--accent))] bg-[rgb(var(--accent))]/10 text-[rgb(var(--accent))]'
+                        : 'border-[rgb(var(--border))] bg-[rgb(var(--bg))] text-[rgb(var(--fg))] hover:border-[rgb(var(--accent))]'
+                    }`}
+                  >
+                    USDC
+                  </button>
+                </div>
+              </div>
+
               {/* Goal Amount */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Funding Goal (ETH) <span className="text-red-500">*</span>
+                  Funding Goal ({form.currency}) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
-                  placeholder="5.0"
-                  step="0.01"
-                  min="0.01"
+                  placeholder={form.currency === 'ETH' ? '5.0' : '100'}
+                  step={form.currency === 'ETH' ? '0.01' : '1'}
+                  min={form.currency === 'ETH' ? '0.01' : '1'}
                   value={form.goalAmount}
                   onChange={e => setForm({ ...form, goalAmount: e.target.value })}
                   className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-3 text-sm focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none"
@@ -221,12 +250,18 @@ export default function NewFundraiser() {
                   placeholder="0x..."
                   value={form.beneficiaryAddress}
                   onChange={e => setForm({ ...form, beneficiaryAddress: e.target.value })}
-                  className="w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-3 text-sm font-mono focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none"
+                  className={`w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] px-4 py-3 text-sm font-mono focus:ring-2 focus:ring-[rgb(var(--accent))] focus:outline-none ${isConnected ? 'bg-green-50 dark:bg-green-950/20' : ''}`}
                   required
                 />
-                <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-                  This is where the raised funds will be sent
-                </p>
+                {isConnected ? (
+                  <p className="mt-1 text-xs text-green-600">
+                    ✓ Auto-filled with your connected wallet address
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+                    Connect your wallet to auto-populate this field
+                  </p>
+                )}
               </div>
 
               {/* Creator Username */}

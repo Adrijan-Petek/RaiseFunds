@@ -5,7 +5,8 @@ export async function createDonation(
   amount: number,
   donorName?: string,
   donorAddress?: string,
-  message?: string
+  message?: string,
+  currency: 'ETH' | 'USDC' = 'ETH'
 ) {
   try {
     const { data: donation, error } = await supabase
@@ -15,6 +16,7 @@ export async function createDonation(
         donor_address: donorAddress || '',
         donor_username: donorName,
         amount: amount,
+        currency: currency,
         message: message || '',
         status: 'PENDING'
       })
@@ -32,6 +34,7 @@ export async function createDonation(
       donorName: donation.donor_username || 'Anonymous',
       donorAddress: donation.donor_address,
       amount: parseFloat(donation.amount),
+      currency: donation.currency || 'ETH',
       message: donation.message,
       status: donation.status,
       createdAt: donation.created_at,

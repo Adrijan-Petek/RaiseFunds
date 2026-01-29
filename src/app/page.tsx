@@ -9,6 +9,7 @@ interface Fundraiser {
   title: string
   description: string
   goalAmount: number
+  currency?: string
   totalRaisedCached: number
   coverImageUrl?: string
   category: string
@@ -91,6 +92,13 @@ export default function Home() {
             return (
               <div key={f.id} className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] overflow-hidden hover:opacity-95">
                 <div className="relative aspect-[16/9] bg-gradient-to-br from-neutral-200 to-neutral-50 dark:from-neutral-900 dark:to-neutral-800">
+                  {f.coverImageUrl && (
+                    <img
+                      src={f.coverImageUrl}
+                      alt={f.title}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2 py-1 text-xs text-white">{f.status || 'ACTIVE'}</span>
                   <span className="absolute right-3 top-3 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-2 py-1 text-xs">{f.category}</span>
                 </div>
@@ -107,8 +115,8 @@ export default function Home() {
                     </div>
 
                     <div className="mt-2 flex items-center justify-between text-sm">
-                      <div className="font-medium">{Number(f.totalRaisedCached)} ETH raised</div>
-                      <div className="text-[rgb(var(--muted))]">Goal {f.goalAmount} ETH</div>
+                      <div className="font-medium">{Number(f.totalRaisedCached)} {f.currency || 'ETH'} raised</div>
+                      <div className="text-[rgb(var(--muted))]">Goal {f.goalAmount} {f.currency || 'ETH'}</div>
                     </div>
 
                     <div className="mt-1 text-xs text-[rgb(var(--muted))]">{Math.round(progress)}% funded · {f._count?.donations || 0} donors · 3 days left</div>

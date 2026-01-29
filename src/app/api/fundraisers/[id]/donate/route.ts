@@ -6,6 +6,7 @@ const donateSchema = z.object({
   donorName: z.string().optional(),
   donorAddress: z.string().optional(),
   amount: z.number().positive(),
+  currency: z.enum(['ETH', 'USDC']).default('ETH'),
   message: z.string().optional(),
 })
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest, context: any) {
     const body = await request.json()
     const data = donateSchema.parse(body)
 
-    const donation = await createDonation(id, data.amount, data.donorName, data.donorAddress, data.message)
+    const donation = await createDonation(id, data.amount, data.donorName, data.donorAddress, data.message, data.currency)
     return NextResponse.json(donation, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {

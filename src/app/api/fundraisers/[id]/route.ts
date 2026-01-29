@@ -54,10 +54,12 @@ export async function GET(request: NextRequest, context: any) {
       status: fundraiser.status,
       createdAt: fundraiser.created_at,
       beneficiaryAddress: fundraiser.beneficiary_address,
+      currency: fundraiser.currency || 'ETH',
       creator: { username: fundraiser.creator_username },
       donations: fundraiser.donations?.map((donation: any) => ({
         id: donation.id,
         amount: parseFloat(donation.amount),
+        currency: donation.currency || 'ETH',
         donorAddress: donation.donor_address,
         donorUsername: donation.donor_username,
         message: donation.message,
