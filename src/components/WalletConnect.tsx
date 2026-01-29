@@ -1,75 +1,22 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
 import { SignInButton, useProfile } from '@farcaster/auth-kit'
 import { EthereumProvider } from '@walletconnect/ethereum-provider'
+import { createPublicClient, http, toCoinType } from 'viem'
+import { base, mainnet } from 'viem/chains'
 
-function IconBadge({ children }: { children: React.ReactNode }) {
+const mainnetPublicClient = createPublicClient({
+  chain: mainnet,
+  transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC_URL || 'https://cloudflare-eth.com'),
+})
+
+function IconBadge({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--bg))]">
-      {children}
+      <img src={src} alt={alt} className="h-5 w-5 object-contain" />
     </div>
-  )
-}
-
-function MetaMaskIcon() {
-  // higher-fidelity MetaMask fox mark (simplified for 20px square)
-  return (
-    <svg width="20" height="20" viewBox="0 0 128 128" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" fillRule="evenodd">
-        <path d="M12.3 35.6 43 19.7 36 9 12.3 35.6z" fill="#E2761B" />
-        <path d="M115.7 35.6 86.9 19.7 92.9 9 115.7 35.6z" fill="#E2761B" />
-        <path d="M45.7 66.8 64 54l-4 18.5-14.3-5.7z" fill="#F6851B" />
-        <path d="M82.3 66.8 64 54l4 18.5 14.3-5.7z" fill="#F6851B" />
-        <path d="M23 75l23 18 0-12-23-6z" fill="#D7C1B3" />
-        <path d="M105 75l-23 18 0-12 23-6z" fill="#D7C1B3" />
-        <path d="M64 88l19-11-6 16-13-5z" fill="#C0AD9E" />
-      </g>
-    </svg>
-  )
-}
-
-function RainbowIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" fillRule="evenodd">
-        <path d="M2 15c3-5 7-7 10-7s7 2 10 7" stroke="#7C3AED" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4 17c2.5-3.5 6-5 8-5s5.5 1.5 8 5" stroke="#3B82F6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M6 19c2-2 4.5-3 6-3s4 1 6 3" stroke="#EC4899" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-    </svg>
-  )
-}
-
-function BaseIcon() {
-  // compact Base mark (blue circle with white 'b' glyph)
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="11" fill="#0052FF" />
-      <path d="M9.5 15.5C9.5 13.8 10.84 12.5 12.5 12.5H14.2C15.86 12.5 17 11.36 17 9.7 17 8.03 15.86 6.9 14.2 6.9H11" stroke="#FFF" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function FarcasterIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="22" height="22" rx="5" fill="#7C3AED" />
-      <path d="M7 16V8h10v8h-3V11H10v5H7z" fill="#FFF" />
-    </svg>
-  )
-}
-
-function WalletConnectIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="11" fill="#3396FF" />
-      <g fill="none" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9.5 14.5c-1.5 1.5-1.5 3.5 0 5 1.5 1.5 3.9 1.5 5.4 0l3-3" />
-        <path d="M14.5 9.5c1.5-1.5 1.5-3.5 0-5-1.5-1.5-3.9-1.5-5.4 0l-3 3" />
-      </g>
-    </svg>
   )
 }
 
@@ -79,6 +26,7 @@ export function WalletConnect() {
   const [wcError, setWcError] = useState('')
   const [wcConnected, setWcConnected] = useState(false)
   const [wcProvider, setWcProvider] = useState<any>(null)
+  const [baseName, setBaseName] = useState<string | null>(null)
 
   const { isConnected: web3Connected, address: web3Address, connector: activeConnector } = useAccount()
   const { connectors, connect, isPending } = useConnect()
@@ -86,6 +34,40 @@ export function WalletConnect() {
   const farcasterProfileState: any = useProfile()
   const farcasterSignedIn = Boolean(farcasterProfileState?.isAuthenticated)
   const farcasterProfile = farcasterProfileState?.profile
+  const farcasterLabel = farcasterProfile?.username
+    ? `@${farcasterProfile.username}`
+    : farcasterProfile?.displayName
+  const { data: ensName } = useEnsName({
+    address: web3Address,
+    chainId: mainnet.id,
+    query: { enabled: Boolean(web3Address) },
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    setBaseName(null)
+
+    if (!web3Address) return
+
+    const fetchBaseName = async () => {
+      try {
+        const name = await mainnetPublicClient.getEnsName({
+          address: web3Address,
+          coinType: toCoinType(base.id),
+        })
+        if (!cancelled) setBaseName(name ?? null)
+      } catch (error) {
+        if (!cancelled) setBaseName(null)
+        console.error('Basename lookup error:', error)
+      }
+    }
+
+    fetchBaseName()
+
+    return () => {
+      cancelled = true
+    }
+  }, [web3Address])
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
@@ -95,13 +77,14 @@ export function WalletConnect() {
 
   const buttonLabel = useMemo(() => {
     if (web3Connected && web3Address) {
-      const name = activeConnector?.name ? `${activeConnector.name}: ` : ''
-      return `${name}${web3Address.slice(0, 6)}...${web3Address.slice(-4)}`
+      const resolvedName = ensName || baseName
+      const addressLabel = `${web3Address.slice(0, 6)}...${web3Address.slice(-4)}`
+      return resolvedName || addressLabel
     }
-    if (farcasterSignedIn && farcasterProfile?.username) return `@${farcasterProfile.username}`
+    if (farcasterSignedIn && farcasterLabel) return farcasterLabel
     if (wcConnected) return 'WalletConnect'
     return 'Connect Wallet'
-  }, [activeConnector?.name, farcasterProfile?.username, farcasterSignedIn, wcConnected, web3Address, web3Connected])
+  }, [activeConnector?.name, baseName, ensName, farcasterLabel, farcasterSignedIn, wcConnected, web3Address, web3Connected])
 
   // Auto-close modal when wallet connects
   useEffect(() => {
@@ -309,9 +292,7 @@ export function WalletConnect() {
                     className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
-                      <IconBadge>
-                        <MetaMaskIcon />
-                      </IconBadge>
+                      <IconBadge src="/icons/wallets/metamask.svg" alt="MetaMask" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold leading-5">MetaMask</div>
                         <div className="text-xs text-[rgb(var(--muted))]">Browser extension</div>
@@ -339,9 +320,7 @@ export function WalletConnect() {
                     className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
-                      <IconBadge>
-                        <RainbowIcon />
-                      </IconBadge>
+                      <IconBadge src="/icons/wallets/rainbow.svg" alt="Rainbow" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold leading-5">Rainbow</div>
                         <div className="text-sm text-[rgb(var(--muted))]">Mobile wallet</div>
@@ -369,9 +348,7 @@ export function WalletConnect() {
                     className="group w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 text-left hover:bg-[rgb(var(--bg))] hover:border-[rgb(var(--accent))] transition-all duration-200 disabled:opacity-50 hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
-                      <IconBadge>
-                        <BaseIcon />
-                      </IconBadge>
+                      <IconBadge src="/icons/wallets/base.svg" alt="Base" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold leading-5">Base</div>
                         <div className="text-xs text-[rgb(var(--muted))]">Mobile & browser</div>
@@ -402,13 +379,11 @@ export function WalletConnect() {
                 {/* Farcaster */}
                 <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
                   <div className="flex items-center gap-3">
-                    <IconBadge>
-                      <FarcasterIcon />
-                    </IconBadge>
+                    <IconBadge src="/icons/wallets/farcaster.svg" alt="Farcaster" />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold leading-5">Farcaster</div>
                       <div className="text-xs text-[rgb(var(--muted))]">
-                        {farcasterSignedIn && farcasterProfile?.username ? `@${farcasterProfile.username}` : 'Social login'}
+                        {farcasterSignedIn && farcasterLabel ? farcasterLabel : 'Social login'}
                       </div>
                     </div>
 
@@ -430,9 +405,7 @@ export function WalletConnect() {
                 {/* WalletConnect */}
                 <div className="w-full rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-1.5 hover:bg-[rgb(var(--bg))] transition-colors">
                   <div className="flex items-center gap-3">
-                    <IconBadge>
-                      <WalletConnectIcon />
-                    </IconBadge>
+                    <IconBadge src="/icons/wallets/walletconnect.png" alt="WalletConnect" />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold leading-5">WalletConnect</div>
                       <div className="text-sm text-[rgb(var(--muted))]">
