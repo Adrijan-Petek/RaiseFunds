@@ -91,7 +91,7 @@ contract DonationBadges1155 {
     // If true: each wallet can hold max 1 for tokenId (campaignId)
     mapping(uint256 => bool) public onePerWallet;
 
-    // Optional: make badges soulbound (non-transferable)
+    // Permanent: badges are soulbound (non-transferable)
     bool public soulbound;
 
     // --- ERC165 / interface ids ---
@@ -152,11 +152,6 @@ contract DonationBadges1155 {
     function setOnePerWallet(uint256 id, bool enabled) external onlyOwner {
         onePerWallet[id] = enabled;
         emit OnePerWalletSet(id, enabled);
-    }
-
-    function setSoulbound(bool enabled) external onlyOwner {
-        soulbound = enabled;
-        emit SoulboundSet(enabled);
     }
 
     // --- metadata ---
